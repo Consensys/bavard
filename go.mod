@@ -1,3 +1,3 @@
-module github.com/ConsenSys/bavard
+module github.com/consensys/bavard
 
 go 1.14
