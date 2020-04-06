@@ -30,6 +30,7 @@ type Bavard struct {
 	packageDoc  string
 	license     string
 	generated   string
+	funcs       template.FuncMap
 }
 
 func Generate(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
@@ -81,8 +82,12 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	}
 
 	// parse templates
+	fnHelpers := helpers()
+	for k, v := range bavard.funcs {
+		fnHelpers[k] = v
+	}
 	tmpl := template.Must(template.New("").
-		Funcs(helpers()).
+		Funcs(fnHelpers).
 		Parse(aggregate(templates)))
 
 	// execute template
@@ -174,6 +179,13 @@ func Format(v bool) func(*Bavard) error {
 func Import(v bool) func(*Bavard) error {
 	return func(bavard *Bavard) error {
 		bavard.imports = v
+		return nil
+	}
+}
+
+func Funcs(funcs template.FuncMap) func(*Bavard) error {
+	return func(bavard *Bavard) error {
+		bavard.funcs = funcs
 		return nil
 	}
 }
