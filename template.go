@@ -30,6 +30,7 @@ type Bavard struct {
 	packageDoc  string
 	license     string
 	generated   string
+	buildTag    string
 	funcs       template.FuncMap
 }
 
@@ -56,6 +57,12 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	}
 	if bavard.verbose {
 		fmt.Printf("generating %-70s\n", output)
+	}
+
+	if bavard.buildTag != "" {
+		if _, err := file.WriteString("// +build " + bavard.buildTag + "\n"); err != nil {
+			return err
+		}
 	}
 
 	if bavard.license != "" {
@@ -148,6 +155,13 @@ func Apache2(copyrightHolder string, year int) func(*Bavard) error {
 func GeneratedBy(label string) func(*Bavard) error {
 	return func(bavard *Bavard) error {
 		bavard.generated = label
+		return nil
+	}
+}
+
+func BuildTag(buildTag string) func(*Bavard) error {
+	return func(bavard *Bavard) error {
+		bavard.buildTag = buildTag
 		return nil
 	}
 }
