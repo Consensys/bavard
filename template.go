@@ -15,9 +15,13 @@
 package bavard
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -106,9 +110,60 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 
 	// format generated code
 	if bavard.fmt {
-		if err := exec.Command("gofmt", "-s", "-w", output).Run(); err != nil {
-			return err
+		switch filepath.Ext(output) {
+		case ".go":
+			if err := exec.Command("gofmt", "-s", "-w", output).Run(); err != nil {
+				return err
+			}
+		case ".s":
+			// a quick and dirty formatter, not even in place
+
+			// 1- create result buffer
+			var result bytes.Buffer
+
+			// 2- open file
+			file, err := os.Open(output)
+			if err != nil {
+				return err
+			}
+
+			scanner := bufio.NewScanner(file)
+			prevLine := false
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				isJump := line == ""
+				if (isJump && !prevLine) || !isJump {
+					result.WriteString(line)
+					result.WriteByte('\n')
+				}
+				if strings.HasPrefix(line, "TEXT ") {
+					break
+				}
+				prevLine = isJump
+			}
+			prevLine = false
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				isJump := line == ""
+				if (isJump && !prevLine) || !isJump {
+					result.WriteString("    " + line)
+					result.WriteByte('\n')
+				}
+				prevLine = isJump
+			}
+
+			if err := scanner.Err(); err != nil {
+				file.Close()
+				return err
+			}
+			file.Close()
+
+			err = ioutil.WriteFile(output, result.Bytes(), 0644)
+			if err != nil {
+				return err
+			}
 		}
+
 	}
 
 	// run goimports on generated code
