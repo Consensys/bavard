@@ -24,14 +24,15 @@ import (
 func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
-		"reverse": reverse,
-		"add":     add,
-		"sub":     sub,
-		"toLower": strings.ToLower,
-		"toUpper": strings.ToUpper,
-		"dict":    dict,
-		"mul2":    mul2,
-		"mul":     mul,
+		"reverse":    reverse,
+		"add":        add,
+		"sub":        sub,
+		"toLower":    strings.ToLower,
+		"toUpper":    strings.ToUpper,
+		"capitalize": strings.Title,
+		"dict":       dict,
+		"mul2":       mul2,
+		"mul":        mul,
 	}
 }
 
