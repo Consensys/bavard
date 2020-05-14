@@ -54,6 +54,9 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 		}
 	}
 
+	// create output dir if not exist
+	_ = os.MkdirAll(filepath.Dir(output), os.ModePerm)
+
 	// create output file
 	file, err := os.Create(output)
 	if err != nil {
