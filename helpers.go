@@ -33,6 +33,7 @@ func helpers() template.FuncMap {
 		"dict":       dict,
 		"mul2":       mul2,
 		"mul":        mul,
+		"div":        div,
 	}
 }
 
@@ -54,9 +55,11 @@ func mul(a, b int) int {
 func sub(a, b int) int {
 	return a - b
 }
-
 func mul2(a int) int {
 	return a * 2
+}
+func div(a, b int) int {
+	return a / b
 }
 
 func dict(values ...interface{}) (map[string]interface{}, error) {
