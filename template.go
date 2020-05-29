@@ -115,7 +115,10 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	if bavard.fmt {
 		switch filepath.Ext(output) {
 		case ".go":
-			if err := exec.Command("gofmt", "-s", "-w", output).Run(); err != nil {
+			cmd := exec.Command("gofmt", "-s", "-w", output)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
 				return err
 			}
 		case ".s":
@@ -171,7 +174,10 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 
 	// run goimports on generated code
 	if bavard.imports {
-		if err := exec.Command("goimports", "-w", output).Run(); err != nil {
+		cmd := exec.Command("goimports", "-w", output)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
 			return err
 		}
 	}
