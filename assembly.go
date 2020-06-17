@@ -56,6 +56,14 @@ func (builder *Assembly) PopRegister() Register {
 	return r
 }
 
+func (builder *Assembly) PopRegisters(n int) []Register {
+	toReturn := make([]Register, n)
+	for i := 0; i < n; i++ {
+		toReturn[i] = builder.PopRegister()
+	}
+	return toReturn
+}
+
 func (builder *Assembly) PushRegister(r ...Register) {
 	builder.registers = append(builder.registers, r...)
 }
@@ -64,10 +72,17 @@ func (builder *Assembly) Comment(s string) {
 	builder.WriteLn("    // " + s)
 }
 
-func (builder *Assembly) FuncHeader(funcName string, pSize int) {
+func (builder *Assembly) FuncHeader(funcName string, stackSize, argSize int) {
 	builder.WriteLn("")
-	header := "TEXT ·%s(SB), NOSPLIT, $0-%d"
-	builder.WriteLn(fmt.Sprintf(header, funcName, pSize))
+	var header string
+	if stackSize == 0 {
+		header = "TEXT ·%s(SB), NOSPLIT, $%d-%d"
+	} else {
+		header = "TEXT ·%s(SB), $%d-%d"
+	}
+
+	builder.WriteLn(fmt.Sprintf(header, funcName, stackSize, argSize))
+	builder.Reset()
 }
 
 func (builder *Assembly) WriteLn(s string) {
@@ -116,6 +131,18 @@ func (builder *Assembly) XORQ(r1, r2 interface{}, comment ...string) {
 
 func (builder *Assembly) MOVQ(r1, r2 interface{}, comment ...string) {
 	builder.writeOp(comment, "MOVQ", r1, r2)
+}
+
+func (builder *Assembly) MOVNTIQ(r1, r2 interface{}, comment ...string) {
+	builder.writeOp(comment, "MOVNTIQ", r1, r2)
+}
+
+func (builder *Assembly) PUSHQ(r1 interface{}, comment ...string) {
+	builder.writeOp(comment, "PUSHQ", r1)
+}
+
+func (builder *Assembly) POPQ(r1 interface{}, comment ...string) {
+	builder.writeOp(comment, "POPQ", r1)
 }
 
 func (builder *Assembly) IMULQ(r1, r2 interface{}, comment ...string) {
