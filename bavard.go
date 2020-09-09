@@ -50,7 +50,7 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	b.imports = true
 	b.fmt = true
 	b.verbose = true
-	b.generated = "b"
+	b.generated = "bavard"
 
 	// handle options
 	for _, option := range options {
