@@ -19,141 +19,135 @@ package amd64
 import (
 	"fmt"
 	"io"
-	"sync"
 )
 
-var writer io.Writer
-var glock sync.Mutex
-
-// TODO this needs to be refactored without package wide variables...
-
-func Lock(w io.Writer) {
-	glock.Lock()
-	writer = w
+type Amd64 struct {
+	w            io.Writer
+	labelCounter int
 }
 
-func Unlock() {
-	glock.Unlock()
+func NewAmd64(w io.Writer) *Amd64 {
+	return &Amd64{w: w}
 }
 
-func RET() {
-	WriteLn("    RET")
+func (amd64 *Amd64) RET() {
+	amd64.WriteLn("    RET")
 }
 
-func MULXQ(src, lo, hi interface{}, comment ...string) {
-	writeOp(comment, "MULXQ", src, lo, hi)
+func (amd64 *Amd64) MULXQ(src, lo, hi interface{}, comment ...string) {
+	amd64.writeOp(comment, "MULXQ", src, lo, hi)
 }
 
-func SUBQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "SUBQ", r1, r2)
+func (amd64 *Amd64) SUBQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SUBQ", r1, r2)
 }
 
-func SBBQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "SBBQ", r1, r2)
+func (amd64 *Amd64) SBBQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SBBQ", r1, r2)
 }
 
-func ADDQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "ADDQ", r1, r2)
+func (amd64 *Amd64) ADDQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ADDQ", r1, r2)
 }
 
-func ADCQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "ADCQ", r1, r2)
+func (amd64 *Amd64) ADCQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ADCQ", r1, r2)
 }
 
-func ADOXQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "ADOXQ", r1, r2)
+func (amd64 *Amd64) ADOXQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ADOXQ", r1, r2)
 }
 
-func ADCXQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "ADCXQ", r1, r2)
+func (amd64 *Amd64) ADCXQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ADCXQ", r1, r2)
 }
 
-func XORQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "XORQ", r1, r2)
+func (amd64 *Amd64) XORQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "XORQ", r1, r2)
 }
 
-func XORPS(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "XORPS", r1, r2)
+func (amd64 *Amd64) XORPS(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "XORPS", r1, r2)
 }
 
-func MOVQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "MOVQ", r1, r2)
+func (amd64 *Amd64) MOVQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "MOVQ", r1, r2)
 }
 
-func MOVUPS(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "MOVUPS", r1, r2)
+func (amd64 *Amd64) MOVUPS(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "MOVUPS", r1, r2)
 }
 
-func MOVNTIQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "MOVNTIQ", r1, r2)
+func (amd64 *Amd64) MOVNTIQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "MOVNTIQ", r1, r2)
 }
 
-func PUSHQ(r1 interface{}, comment ...string) {
-	writeOp(comment, "PUSHQ", r1)
+func (amd64 *Amd64) PUSHQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PUSHQ", r1)
 }
 
-func POPQ(r1 interface{}, comment ...string) {
-	writeOp(comment, "POPQ", r1)
+func (amd64 *Amd64) POPQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "POPQ", r1)
 }
 
-func IMULQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "IMULQ", r1, r2)
+func (amd64 *Amd64) IMULQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "IMULQ", r1, r2)
 }
 
-func MULQ(r1 interface{}, comment ...string) {
-	writeOp(comment, "MULQ", r1)
+func (amd64 *Amd64) MULQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "MULQ", r1)
 }
 
-func CMPB(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "CMPB", r1, r2)
+func (amd64 *Amd64) CMPB(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMPB", r1, r2)
 }
 
-func CMPQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "CMPQ", r1, r2)
+func (amd64 *Amd64) CMPQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMPQ", r1, r2)
 }
 
-func ORQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "ORQ", r1, r2)
+func (amd64 *Amd64) ORQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ORQ", r1, r2)
 }
 
-func TESTQ(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "TESTQ", r1, r2)
+func (amd64 *Amd64) TESTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "TESTQ", r1, r2)
 }
 
-func CMOVQCC(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "CMOVQCC", r1, r2)
+func (amd64 *Amd64) CMOVQCC(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMOVQCC", r1, r2)
 }
 
-func CMOVQCS(r1, r2 interface{}, comment ...string) {
-	writeOp(comment, "CMOVQCS", r1, r2)
+func (amd64 *Amd64) CMOVQCS(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMOVQCS", r1, r2)
 }
 
-func LABEL(l Label) {
-	WriteLn(string(l) + ":")
+func (amd64 *Amd64) LABEL(l Label) {
+	amd64.WriteLn(string(l) + ":")
 }
 
-func JNE(label Label, comment ...string) {
-	writeOp(comment, "JNE", string(label))
+func (amd64 *Amd64) JNE(label Label, comment ...string) {
+	amd64.writeOp(comment, "JNE", string(label))
 }
 
-func JCS(label Label, comment ...string) {
-	writeOp(comment, "JCS", string(label))
+func (amd64 *Amd64) JCS(label Label, comment ...string) {
+	amd64.writeOp(comment, "JCS", string(label))
 }
 
-func JCC(label Label, comment ...string) {
-	writeOp(comment, "JCC", string(label))
+func (amd64 *Amd64) JCC(label Label, comment ...string) {
+	amd64.writeOp(comment, "JCC", string(label))
 }
 
-func JMP(label Label, comment ...string) {
-	writeOp(comment, "JMP", string(label))
+func (amd64 *Amd64) JMP(label Label, comment ...string) {
+	amd64.writeOp(comment, "JMP", string(label))
 }
 
-func Comment(s string) {
-	WriteLn("    // " + s)
+func (amd64 *Amd64) Comment(s string) {
+	amd64.WriteLn("    // " + s)
 }
 
-func FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Registers {
-	WriteLn("")
+func (amd64 *Amd64) FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Registers {
+	amd64.WriteLn("")
 	var header string
 	if stackSize == 0 {
 		header = "TEXT ·%s(SB), NOSPLIT, $%d-%d"
@@ -161,7 +155,7 @@ func FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Reg
 		header = "TEXT ·%s(SB), $%d-%d"
 	}
 
-	WriteLn(fmt.Sprintf(header, funcName, stackSize, argSize))
+	amd64.WriteLn(fmt.Sprintf(header, funcName, stackSize, argSize))
 	r := NewRegisters()
 	for _, rr := range reserved {
 		r.Remove(rr)
@@ -169,29 +163,29 @@ func FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Reg
 	return r
 }
 
-func WriteLn(s string) {
-	write(s + "\n")
+func (amd64 *Amd64) WriteLn(s string) {
+	amd64.write(s + "\n")
 }
 
-func write(s string) {
-	writer.Write([]byte(s))
+func (amd64 *Amd64) write(s string) {
+	amd64.w.Write([]byte(s))
 }
 
-func writeOp(comments []string, instruction string, r0 interface{}, r ...interface{}) {
-	write(fmt.Sprintf("    %s %s", instruction, op(r0)))
+func (amd64 *Amd64) writeOp(comments []string, instruction string, r0 interface{}, r ...interface{}) {
+	amd64.write(fmt.Sprintf("    %s %s", instruction, op(r0)))
 	l := len(op(r0))
 	for _, rn := range r {
-		write(fmt.Sprintf(", %s", op(rn)))
+		amd64.write(fmt.Sprintf(", %s", op(rn)))
 		l += (2 + len(op(rn)))
 	}
 	if len(comments) == 1 {
 		l = 50 - l
 		for i := 0; i < l; i++ {
-			write(" ")
+			amd64.write(" ")
 		}
-		write("// " + comments[0])
+		amd64.write("// " + comments[0])
 	}
-	write("\n")
+	amd64.write("\n")
 }
 
 func op(i interface{}) string {

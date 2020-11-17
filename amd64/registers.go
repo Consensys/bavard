@@ -89,18 +89,7 @@ var registers = []Register{
 	"R15",
 }
 
-var mapLabels map[string]int
-
-func init() {
-	mapLabels = make(map[string]int)
-}
-
-func NewLabel(prefix string) Label {
-	if v, ok := mapLabels[prefix]; !ok {
-		mapLabels[prefix] = 1
-		return Label(fmt.Sprintf("%s%d", prefix, 0))
-	} else {
-		mapLabels[prefix] = v + 1
-		return Label(fmt.Sprintf("%s%d", prefix, v))
-	}
+func (amd64 *Amd64) NewLabel() Label {
+	amd64.labelCounter++
+	return Label(fmt.Sprintf("l%d", amd64.labelCounter))
 }
