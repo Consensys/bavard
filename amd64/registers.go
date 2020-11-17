@@ -89,9 +89,18 @@ var registers = []Register{
 	"R15",
 }
 
-var labelCounter = 0
+var mapLabels map[string]int
 
-func NewLabel() Label {
-	labelCounter++
-	return Label(fmt.Sprintf("l%d", labelCounter))
+func init() {
+	mapLabels = make(map[string]int)
+}
+
+func NewLabel(prefix string) Label {
+	if v, ok := mapLabels[prefix]; !ok {
+		mapLabels[prefix] = 1
+		return Label(fmt.Sprintf("%s%d", prefix, 0))
+	} else {
+		mapLabels[prefix] = v + 1
+		return Label(fmt.Sprintf("%s%d", prefix, v))
+	}
 }
