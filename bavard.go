@@ -46,9 +46,9 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	var b Bavard
 
 	// default settings
-	b.imports = true
+	b.imports = false
 	b.fmt = false
-	b.verbose = false
+	b.verbose = true
 	b.generated = "bavard"
 
 	var buf bytes.Buffer

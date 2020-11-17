@@ -19,12 +19,21 @@ package amd64
 import (
 	"fmt"
 	"io"
+	"sync"
 )
 
 var writer io.Writer
+var glock sync.Mutex
 
-func SetWriter(w io.Writer) {
+// TODO this needs to be refactored without package wide variables...
+
+func Lock(w io.Writer) {
+	glock.Lock()
 	writer = w
+}
+
+func Unlock() {
+	glock.Unlock()
 }
 
 func RET() {
