@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -38,6 +39,72 @@ type Bavard struct {
 	generated   string
 	buildTag    string
 	funcs       template.FuncMap
+}
+
+// BatchGenerator enables more efficient and clean multiple file generation
+type BatchGenerator struct {
+	defaultOpts []func(*Bavard) error
+}
+
+// NewBatchGenerator returns a new BatchGenerator
+func NewBatchGenerator(copyrightHolder, generatedBy string) *BatchGenerator {
+	return &BatchGenerator{
+		defaultOpts: []func(*Bavard) error{
+			Apache2(copyrightHolder, 2020),
+			GeneratedBy(generatedBy),
+			Format(false),
+			Import(false),
+			Verbose(true),
+		},
+	}
+}
+
+// Generate an entry with generator default config
+func (b *BatchGenerator) Generate(entries ...Entry) error {
+	chErrors := make(chan error, len(entries))
+	chDone := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < len(entries); i++ {
+		wg.Add(1)
+		go func(entry Entry) {
+			defer wg.Done()
+			opts := make([]func(*Bavard) error, len(b.defaultOpts))
+			copy(opts, b.defaultOpts)
+			if entry.BuildTag != "" {
+				opts = append(opts, BuildTag(entry.BuildTag))
+			}
+			opts = append(opts, Package(entry.PackageName, entry.PackageDoc))
+			if err := Generate(entry.File, entry.Templates, entry.Data, opts...); err != nil {
+				chErrors <- err
+			}
+		}(entries[i])
+	}
+	go func() {
+		wg.Wait()
+		close(chDone)
+	}()
+
+	select {
+	case <-chDone:
+		break
+	case err := <-chErrors:
+		close(chErrors)
+		return err
+	}
+
+	// TODO find base dir and format
+
+	return nil
+}
+
+// Entry to be used in batch generation of files
+type Entry struct {
+	File        string
+	Templates   []string
+	BuildTag    string
+	PackageName string
+	PackageDoc  string
+	Data        interface{}
 }
 
 // Generate will concatenate templates and create output file from executing the resulting text/template
@@ -112,7 +179,7 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 		return err
 	}
 	if b.verbose {
-		fmt.Printf("generating %-70s\n", output)
+		fmt.Printf("generating %-70s\n", filepath.Clean(output))
 	}
 	if _, err := io.Copy(file, &buf); err != nil {
 		file.Close()

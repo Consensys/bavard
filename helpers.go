@@ -16,6 +16,7 @@ package bavard
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -34,6 +35,7 @@ func helpers() template.FuncMap {
 		"mul2":       mul2,
 		"mul":        mul,
 		"div":        div,
+		"divides":    divides,
 	}
 }
 
@@ -75,4 +77,37 @@ func dict(values ...interface{}) (map[string]interface{}, error) {
 		dict[key] = values[i+1]
 	}
 	return dict, nil
+}
+
+// return true if c1 divides c2, that is, c2 % c1 == 0
+func divides(c1, c2 interface{}) bool {
+	switch cc1 := c1.(type) {
+	case int:
+		switch cc2 := c2.(type) {
+		case int:
+			return cc2%cc1 == 0
+		case string:
+			c2Int, err := strconv.Atoi(cc2)
+			if err != nil {
+				panic(err)
+			}
+			return c2Int%cc1 == 0
+		}
+	case string:
+		c1Int, err := strconv.Atoi(cc1)
+		if err != nil {
+			panic(err)
+		}
+		switch cc2 := c2.(type) {
+		case int:
+			return cc2%c1Int == 0
+		case string:
+			c2Int, err := strconv.Atoi(cc2)
+			if err != nil {
+				panic(err)
+			}
+			return c2Int%c1Int == 0
+		}
+	}
+	panic("unexpected type")
 }
