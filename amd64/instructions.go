@@ -71,7 +71,9 @@ func (amd64 *Amd64) XORPS(r1, r2 interface{}, comment ...string) {
 }
 
 func (amd64 *Amd64) MOVQ(r1, r2 interface{}, comment ...string) {
-	amd64.writeOp(comment, "MOVQ", r1, r2)
+	if op(r1) != op(r2) {
+		amd64.writeOp(comment, "MOVQ", r1, r2)
+	}
 }
 
 func (amd64 *Amd64) MOVUPS(r1, r2 interface{}, comment ...string) {
