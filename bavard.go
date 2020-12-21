@@ -18,7 +18,6 @@ package bavard
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -326,7 +325,10 @@ func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmp
 				opts = append(opts, BuildTag(entry.BuildTag))
 			}
 			opts = append(opts, Package(packageName, entry.PackageDoc))
-			if err := GenerateF(entry.File, filepath.Join(baseTmplDir, entry.TemplateF), data, opts...); err != nil {
+			for j := 0; j < len(entry.TemplateF); j++ {
+				entry.TemplateF[j] = filepath.Join(baseTmplDir, entry.TemplateF[j])
+			}
+			if err := GenerateF(entry.File, entry.TemplateF, data, opts...); err != nil {
 				chErrors <- err
 			}
 		}(entries[i])
@@ -352,14 +354,14 @@ func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmp
 // EntryF to be used in batch generation of files
 type EntryF struct {
 	File       string
-	TemplateF  string
+	TemplateF  []string
 	BuildTag   string
 	PackageDoc string
 }
 
 // GenerateF will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
-func GenerateF(output string, templateF string, data interface{}, options ...func(*Bavard) error) error {
+func GenerateF(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
 	var b Bavard
 
 	// default settings
@@ -412,17 +414,19 @@ func GenerateF(output string, templateF string, data interface{}, options ...fun
 		fnHelpers[k] = v
 	}
 
-	matches, err := filepath.Glob(templateF)
-	if err != nil {
-		return err
-	}
-	if len(matches) == 0 {
-		return errors.New("no template match the regexp")
-	}
+	// matches, err := filepath.Glob(templateF)
+	// if err != nil {
+	// 	return err
+	// }
+	// if len(matches) == 0 {
+	// 	return errors.New("no template match the regexp")
+	// }
 
-	tmpl, err := template.New(filepath.Base(matches[0])).
-		Funcs(fnHelpers).
-		ParseGlob(templateF)
+	tmpl, err := template.New("").Funcs(fnHelpers).ParseFiles(templateF...)
+
+	// tmpl, err := template.New(filepath.Base(matches[0])).
+	// 	Funcs(fnHelpers).
+	// ParseGlob(templateF)
 
 	if err != nil {
 		return err
