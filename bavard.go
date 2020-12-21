@@ -18,10 +18,12 @@ package bavard
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -414,19 +416,12 @@ func GenerateF(output string, templateF []string, data interface{}, options ...f
 		fnHelpers[k] = v
 	}
 
-	// matches, err := filepath.Glob(templateF)
-	// if err != nil {
-	// 	return err
-	// }
-	// if len(matches) == 0 {
-	// 	return errors.New("no template match the regexp")
-	// }
+	if len(templateF) == 0 {
+		return errors.New("missing templates")
+	}
+	tName := path.Base(templateF[0])
 
-	tmpl, err := template.New("").Funcs(fnHelpers).ParseFiles(templateF...)
-
-	// tmpl, err := template.New(filepath.Base(matches[0])).
-	// 	Funcs(fnHelpers).
-	// ParseGlob(templateF)
+	tmpl, err := template.New(tName).Funcs(fnHelpers).ParseFiles(templateF...)
 
 	if err != nil {
 		return err
