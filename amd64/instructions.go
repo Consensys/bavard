@@ -132,6 +132,10 @@ func (amd64 *Amd64) JNE(label Label, comment ...string) {
 	amd64.writeOp(comment, "JNE", string(label))
 }
 
+func (amd64 *Amd64) JEQ(label Label, comment ...string) {
+	amd64.writeOp(comment, "JEQ", string(label))
+}
+
 func (amd64 *Amd64) JCS(label Label, comment ...string) {
 	amd64.writeOp(comment, "JCS", string(label))
 }
@@ -149,7 +153,6 @@ func (amd64 *Amd64) Comment(s string) {
 }
 
 func (amd64 *Amd64) FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Registers {
-	amd64.WriteLn("")
 	var header string
 	if stackSize == 0 {
 		header = "TEXT ·%s(SB), NOSPLIT, $%d-%d"
@@ -197,9 +200,23 @@ func op(i interface{}) string {
 	case Register:
 		return string(t)
 	case int:
-		return fmt.Sprintf("$%#016x", uint64(t))
+		switch t {
+		case 0:
+			return "$0"
+		case 1:
+			return "$1"
+		default:
+			return fmt.Sprintf("$%#016x", uint64(t))
+		}
 	case uint64:
-		return fmt.Sprintf("$%#016x", t)
+		switch t {
+		case 0:
+			return "$0"
+		case 1:
+			return "$1"
+		default:
+			return fmt.Sprintf("$%#016x", t)
+		}
 	}
 	panic("unsupported interface type")
 }

@@ -16,8 +16,13 @@ package amd64
 
 import "fmt"
 
-const DX = Register("DX")
-const AX = Register("AX")
+const (
+	DX = Register("DX")
+	AX = Register("AX")
+	CX = Register("CX")
+	BX = Register("BX")
+	BP = Register("BP")
+)
 
 type Label string
 type Register string
