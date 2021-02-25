@@ -65,7 +65,24 @@ func (r *Registers) Remove(toRemove Register) {
 }
 
 func (r *Registers) Push(rIn ...Register) {
-	r.registers = append(r.registers, rIn...)
+	// ensure register is in our original list, and no duplicate
+	for _, register := range rIn {
+		if _, ok := registerSet[register]; !ok {
+			panic("warning: unknown register")
+		}
+		found := false
+		for _, existing := range r.registers {
+			if register == existing {
+				found = true
+				break
+			}
+		}
+		if found {
+			panic("duplicate register, already present.")
+		}
+		r.registers = append(r.registers, register)
+	}
+
 }
 
 func NewRegisters() Registers {
@@ -76,12 +93,14 @@ func NewRegisters() Registers {
 	return r
 }
 
+// NbRegisters contains nb default available registers, without BP
+const NbRegisters = 14
+
 var registers = []Register{
 	"AX",
 	"DX",
 	"CX",
 	"BX",
-	"BP",
 	"SI",
 	"DI",
 	"R8",
@@ -92,6 +111,18 @@ var registers = []Register{
 	"R13",
 	"R14",
 	"R15",
+}
+
+var registerSet map[Register]struct{}
+
+func init() {
+	registerSet = make(map[Register]struct{}, 0)
+	for _, register := range registers {
+		registerSet[register] = struct{}{}
+	}
+	if len(registers) != NbRegisters {
+		panic("update nb available registers")
+	}
 }
 
 func (amd64 *Amd64) NewLabel() Label {
