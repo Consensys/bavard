@@ -17,11 +17,21 @@ package amd64
 import "fmt"
 
 const (
-	DX = Register("DX")
-	AX = Register("AX")
-	CX = Register("CX")
-	BX = Register("BX")
-	BP = Register("BP")
+	AX  = Register("AX")
+	DX  = Register("DX")
+	CX  = Register("CX")
+	BX  = Register("BX")
+	BP  = Register("BP")
+	SI  = Register("SI")
+	DI  = Register("DI")
+	R8  = Register("R8")
+	R9  = Register("R9")
+	R10 = Register("R10")
+	R11 = Register("R11")
+	R12 = Register("R12")
+	R13 = Register("R13")
+	R14 = Register("R14")
+	R15 = Register("R15")
 )
 
 type Label string
