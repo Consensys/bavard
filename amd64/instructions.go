@@ -84,6 +84,14 @@ func (amd64 *Amd64) MOVNTIQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVNTIQ", r1, r2)
 }
 
+func (amd64 *Amd64) INCQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "INCQ", r1)
+}
+
+func (amd64 *Amd64) DECQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "DECQ", r1)
+}
+
 func (amd64 *Amd64) PUSHQ(r1 interface{}, comment ...string) {
 	amd64.writeOp(comment, "PUSHQ", r1)
 }
