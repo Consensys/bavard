@@ -84,6 +84,10 @@ func (amd64 *Amd64) ANDQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "ANDQ", r1, r2)
 }
 
+func (amd64 *Amd64) BSFQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "BSFQ", r1, r2)
+}
+
 func (amd64 *Amd64) MOVNTIQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVNTIQ", r1, r2)
 }
