@@ -80,8 +80,20 @@ func (amd64 *Amd64) MOVUPS(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVUPS", r1, r2)
 }
 
+func (amd64 *Amd64) ANDQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ANDQ", r1, r2)
+}
+
 func (amd64 *Amd64) MOVNTIQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVNTIQ", r1, r2)
+}
+
+func (amd64 *Amd64) SHRQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SHRQ", r1, r2)
+}
+
+func (amd64 *Amd64) SHRQw(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SHRQ", r1, r2, r3)
 }
 
 func (amd64 *Amd64) INCQ(r1 interface{}, comment ...string) {
