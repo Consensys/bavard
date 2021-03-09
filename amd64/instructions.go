@@ -144,6 +144,10 @@ func (amd64 *Amd64) CMOVQCC(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "CMOVQCC", r1, r2)
 }
 
+func (amd64 *Amd64) CMOVQEQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMOVQEQ", r1, r2)
+}
+
 func (amd64 *Amd64) CMOVQCS(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "CMOVQCS", r1, r2)
 }
