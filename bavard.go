@@ -314,8 +314,8 @@ func Funcs(funcs template.FuncMap) func(*Bavard) error {
 
 // GenerateF an entry with generator default config
 func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmplDir string, entries ...EntryF) error {
-	chErrors := make(chan error, len(entries))
-	chDone := make(chan struct{})
+	var firstError error
+	var lock sync.RWMutex
 	var wg sync.WaitGroup
 	for i := 0; i < len(entries); i++ {
 		wg.Add(1)
@@ -331,26 +331,17 @@ func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmp
 				entry.TemplateF[j] = filepath.Join(baseTmplDir, entry.TemplateF[j])
 			}
 			if err := GenerateF(entry.File, entry.TemplateF, data, opts...); err != nil {
-				chErrors <- err
+				lock.Lock()
+				if firstError == nil {
+					firstError = err
+				}
+				lock.Unlock()
 			}
 		}(entries[i])
 	}
-	go func() {
-		wg.Wait()
-		close(chDone)
-	}()
+	wg.Wait()
 
-	select {
-	case <-chDone:
-		break
-	case err := <-chErrors:
-		close(chErrors)
-		return err
-	}
-
-	// TODO find base dir and format
-
-	return nil
+	return firstError
 }
 
 // EntryF to be used in batch generation of files
