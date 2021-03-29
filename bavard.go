@@ -49,10 +49,10 @@ type BatchGenerator struct {
 }
 
 // NewBatchGenerator returns a new BatchGenerator
-func NewBatchGenerator(copyrightHolder, generatedBy string) *BatchGenerator {
+func NewBatchGenerator(copyrightHolder string, copyrightYear int, generatedBy string) *BatchGenerator {
 	return &BatchGenerator{
 		defaultOpts: []func(*Bavard) error{
-			Apache2(copyrightHolder, 2020),
+			Apache2(copyrightHolder, copyrightYear),
 			GeneratedBy(generatedBy),
 			Format(false),
 			Import(false),
