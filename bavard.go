@@ -145,11 +145,11 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	}
 
 	if b.packageName != "" {
+
 		if b.packageDoc != "" {
-			if _, err := buf.WriteString("// Package " + b.packageName + " "); err != nil {
-				return err
-			}
-			if _, err := buf.WriteString(b.packageDoc + "\n"); err != nil {
+			packageDoc := "// Package " + b.packageName + " " + b.packageDoc
+			packageDoc = strings.ReplaceAll(packageDoc, "\n", "\n// ")
+			if _, err := buf.WriteString(packageDoc + "\n"); err != nil {
 				return err
 			}
 		}
@@ -388,11 +388,11 @@ func GenerateF(output string, templateF []string, data interface{}, options ...f
 	}
 
 	if b.packageName != "" {
+
 		if b.packageDoc != "" {
-			if _, err := buf.WriteString("// Package " + b.packageName + " "); err != nil {
-				return err
-			}
-			if _, err := buf.WriteString(b.packageDoc + "\n"); err != nil {
+			packageDoc := "// Package " + b.packageName + " " + b.packageDoc
+			packageDoc = strings.ReplaceAll(packageDoc, "\n", "\n// ")
+			if _, err := buf.WriteString(packageDoc + "\n"); err != nil {
 				return err
 			}
 		}
