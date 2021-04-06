@@ -166,11 +166,6 @@ func (b *Bavard) config(buf *bytes.Buffer, output string, options ...func(*Bavar
 }
 
 func (b *Bavard) create(output string, buf *bytes.Buffer) error {
-	if b.docFile && b.packageName != "" {
-		if _, err := buf.WriteString("package " + b.packageName + "\n"); err != nil {
-			return err
-		}
-	}
 	// create output dir if not exist
 	_ = os.MkdirAll(filepath.Dir(output), os.ModePerm)
 
