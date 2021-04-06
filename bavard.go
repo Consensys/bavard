@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package bavard contains helper functions to generate consistent code from text/template templates
-// it is used by github.com/consensys/gurvy && github.com/consensys/gnark && github.com/consensys/goff
+// Package bavard contains helper functions to generate consistent code from text/template templates.
+// it is used by github.com/consensys/gnark && github.com/consensys/gnark-crypto
 package bavard
 
 import (
