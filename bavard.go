@@ -36,7 +36,6 @@ type Bavard struct {
 	fmt         bool
 	imports     bool
 	packageName string
-	packageDoc  string
 	license     string
 	generated   string
 	buildTag    string
@@ -61,70 +60,82 @@ func NewBatchGenerator(copyrightHolder string, copyrightYear int, generatedBy st
 	}
 }
 
-// Generate an entry with generator default config
-func (b *BatchGenerator) Generate(entries ...Entry) error {
-	chErrors := make(chan error, len(entries))
-	chDone := make(chan struct{})
-	var wg sync.WaitGroup
-	for i := 0; i < len(entries); i++ {
-		wg.Add(1)
-		go func(entry Entry) {
-			defer wg.Done()
-			opts := make([]func(*Bavard) error, len(b.defaultOpts))
-			copy(opts, b.defaultOpts)
-			if entry.BuildTag != "" {
-				opts = append(opts, BuildTag(entry.BuildTag))
-			}
-			opts = append(opts, Package(entry.PackageName, entry.PackageDoc))
-			if err := Generate(entry.File, entry.Templates, entry.Data, opts...); err != nil {
-				chErrors <- err
-			}
-		}(entries[i])
-	}
-	go func() {
-		wg.Wait()
-		close(chDone)
-	}()
+// Entry to be used in batch generation of files
+type Entry struct {
+	File      string
+	Templates []string
+	BuildTag  string
+}
 
-	select {
-	case <-chDone:
-		break
-	case err := <-chErrors:
-		close(chErrors)
+// GenerateFromString will concatenate templates and create output file from executing the resulting text/template
+// see other package functions to add options (package name, licensing, build tags, ...)
+func GenerateFromString(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
+	var b Bavard
+
+	var buf bytes.Buffer
+
+	if err := b.config(&buf, output, options...); err != nil {
 		return err
 	}
 
-	// TODO find base dir and format
+	fnHelpers := helpers()
+	for k, v := range b.funcs {
+		fnHelpers[k] = v
+	}
 
-	return nil
+	tmpl := template.Must(template.New("").
+		Funcs(fnHelpers).
+		Parse(aggregate(templates)))
+
+	// execute template
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return err
+	}
+
+	return b.create(output, &buf)
 }
 
-// Entry to be used in batch generation of files
-type Entry struct {
-	File        string
-	Templates   []string
-	BuildTag    string
-	PackageName string
-	PackageDoc  string
-	Data        interface{}
-}
-
-// Generate will concatenate templates and create output file from executing the resulting text/template
+// GenerateFromFiles will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
-func Generate(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
+func GenerateFromFiles(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
 	var b Bavard
+	var buf bytes.Buffer
 
+	b.config(&buf, output, options...)
+
+	// parse templates
+	fnHelpers := helpers()
+	for k, v := range b.funcs {
+		fnHelpers[k] = v
+	}
+
+	if len(templateF) == 0 {
+		return errors.New("missing templates")
+	}
+	tName := path.Base(templateF[0])
+
+	tmpl, err := template.New(tName).Funcs(fnHelpers).ParseFiles(templateF...)
+	if err != nil {
+		return err
+	}
+
+	// execute template
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return err
+	}
+	return b.create(output, &buf)
+}
+
+func (b *Bavard) config(buf *bytes.Buffer, output string, options ...func(*Bavard) error) error {
 	// default settings
 	b.imports = false
 	b.fmt = false
 	b.verbose = true
 	b.generated = "bavard"
 
-	var buf bytes.Buffer
-
 	// handle options
 	for _, option := range options {
-		if err := option(&b); err != nil {
+		if err := option(b); err != nil {
 			return err
 		}
 	}
@@ -145,34 +156,16 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	}
 
 	if b.packageName != "" {
-
-		if b.packageDoc != "" {
-			packageDoc := "// Package " + b.packageName + " " + b.packageDoc
-			packageDoc = strings.ReplaceAll(packageDoc, "\n", "\n// ")
-			if _, err := buf.WriteString(packageDoc + "\n"); err != nil {
+		if !strings.HasSuffix(output, "doc.go") {
+			if _, err := buf.WriteString("package " + b.packageName + "\n\n"); err != nil {
 				return err
 			}
 		}
-		if _, err := buf.WriteString("package " + b.packageName + "\n\n"); err != nil {
-			return err
-		}
 	}
+	return nil
+}
 
-	// parse templates
-	fnHelpers := helpers()
-	for k, v := range b.funcs {
-		fnHelpers[k] = v
-	}
-
-	tmpl := template.Must(template.New("").
-		Funcs(fnHelpers).
-		Parse(aggregate(templates)))
-
-	// execute template
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return err
-	}
-
+func (b *Bavard) create(output string, buf *bytes.Buffer) error {
 	// create output dir if not exist
 	_ = os.MkdirAll(filepath.Dir(output), os.ModePerm)
 
@@ -184,7 +177,7 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 	if b.verbose {
 		fmt.Printf("generating %-70s\n", filepath.Clean(output))
 	}
-	if _, err := io.Copy(file, &buf); err != nil {
+	if _, err := io.Copy(file, buf); err != nil {
 		file.Close()
 		return err
 	}
@@ -210,6 +203,7 @@ func Generate(output string, templates []string, data interface{}, options ...fu
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -267,12 +261,9 @@ func BuildTag(buildTag string) func(*Bavard) error {
 }
 
 // Package returns a bavard option adding package name and optional package documentation in the generated file
-func Package(name string, doc ...string) func(*Bavard) error {
+func Package(name string) func(*Bavard) error {
 	return func(b *Bavard) error {
 		b.packageName = name
-		if len(doc) > 0 {
-			b.packageDoc = doc[0]
-		}
 		return nil
 	}
 }
@@ -310,27 +301,25 @@ func Funcs(funcs template.FuncMap) func(*Bavard) error {
 	}
 }
 
-// WIP
-
-// GenerateF an entry with generator default config
-func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmplDir string, entries ...EntryF) error {
+// Generate an entry with generator default config
+func (b *BatchGenerator) Generate(data interface{}, packageName string, baseTmplDir string, entries ...Entry) error {
 	var firstError error
 	var lock sync.RWMutex
 	var wg sync.WaitGroup
 	for i := 0; i < len(entries); i++ {
 		wg.Add(1)
-		go func(entry EntryF) {
+		go func(entry Entry) {
 			defer wg.Done()
 			opts := make([]func(*Bavard) error, len(b.defaultOpts))
 			copy(opts, b.defaultOpts)
 			if entry.BuildTag != "" {
 				opts = append(opts, BuildTag(entry.BuildTag))
 			}
-			opts = append(opts, Package(packageName, entry.PackageDoc))
-			for j := 0; j < len(entry.TemplateF); j++ {
-				entry.TemplateF[j] = filepath.Join(baseTmplDir, entry.TemplateF[j])
+			opts = append(opts, Package(packageName))
+			for j := 0; j < len(entry.Templates); j++ {
+				entry.Templates[j] = filepath.Join(baseTmplDir, entry.Templates[j])
 			}
-			if err := GenerateF(entry.File, entry.TemplateF, data, opts...); err != nil {
+			if err := GenerateFromFiles(entry.File, entry.Templates, data, opts...); err != nil {
 				lock.Lock()
 				if firstError == nil {
 					firstError = err
@@ -342,123 +331,4 @@ func (b *BatchGenerator) GenerateF(data interface{}, packageName string, baseTmp
 	wg.Wait()
 
 	return firstError
-}
-
-// EntryF to be used in batch generation of files
-type EntryF struct {
-	File       string
-	TemplateF  []string
-	BuildTag   string
-	PackageDoc string
-}
-
-// GenerateF will concatenate templates and create output file from executing the resulting text/template
-// see other package functions to add options (package name, licensing, build tags, ...)
-func GenerateF(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
-	var b Bavard
-
-	// default settings
-	b.imports = false
-	b.fmt = false
-	b.verbose = true
-	b.generated = "bavard"
-
-	var buf bytes.Buffer
-
-	// handle options
-	for _, option := range options {
-		if err := option(&b); err != nil {
-			return err
-		}
-	}
-
-	if b.buildTag != "" {
-		if _, err := buf.WriteString("// +build " + b.buildTag + "\n"); err != nil {
-			return err
-		}
-	}
-
-	if b.license != "" {
-		if _, err := buf.WriteString(b.license + "\n"); err != nil {
-			return err
-		}
-	}
-	if _, err := buf.WriteString(fmt.Sprintf("// Code generated by %s DO NOT EDIT\n\n", b.generated)); err != nil {
-		return err
-	}
-
-	if b.packageName != "" {
-
-		if b.packageDoc != "" {
-			packageDoc := "// Package " + b.packageName + " " + b.packageDoc
-			packageDoc = strings.ReplaceAll(packageDoc, "\n", "\n// ")
-			if _, err := buf.WriteString(packageDoc + "\n"); err != nil {
-				return err
-			}
-		}
-		if _, err := buf.WriteString("package " + b.packageName + "\n\n"); err != nil {
-			return err
-		}
-	}
-
-	// parse templates
-	fnHelpers := helpers()
-	for k, v := range b.funcs {
-		fnHelpers[k] = v
-	}
-
-	if len(templateF) == 0 {
-		return errors.New("missing templates")
-	}
-	tName := path.Base(templateF[0])
-
-	tmpl, err := template.New(tName).Funcs(fnHelpers).ParseFiles(templateF...)
-
-	if err != nil {
-		return err
-	}
-
-	// execute template
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return err
-	}
-
-	// create output dir if not exist
-	_ = os.MkdirAll(filepath.Dir(output), os.ModePerm)
-
-	// create output file
-	file, err := os.Create(output)
-	if err != nil {
-		return err
-	}
-	if b.verbose {
-		fmt.Printf("generating %-70s\n", filepath.Clean(output))
-	}
-	if _, err := io.Copy(file, &buf); err != nil {
-		file.Close()
-		return err
-	}
-
-	file.Close()
-
-	// format generated code
-	if b.fmt {
-		cmd := exec.Command("gofmt", "-s", "-w", output)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}
-
-	// run goimports on generated code
-	if b.imports {
-		cmd := exec.Command("goimports", "-w", output)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}
-	return nil
 }
