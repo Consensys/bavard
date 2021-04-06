@@ -35,6 +35,7 @@ type Bavard struct {
 	verbose     bool
 	fmt         bool
 	imports     bool
+	docFile     bool
 	packageName string
 	license     string
 	generated   string
@@ -132,6 +133,7 @@ func (b *Bavard) config(buf *bytes.Buffer, output string, options ...func(*Bavar
 	b.fmt = false
 	b.verbose = true
 	b.generated = "bavard"
+	b.docFile = strings.HasSuffix(output, "doc.go")
 
 	// handle options
 	for _, option := range options {
@@ -155,17 +157,20 @@ func (b *Bavard) config(buf *bytes.Buffer, output string, options ...func(*Bavar
 		return err
 	}
 
-	if b.packageName != "" {
-		if !strings.HasSuffix(output, "doc.go") {
-			if _, err := buf.WriteString("package " + b.packageName + "\n\n"); err != nil {
-				return err
-			}
+	if !b.docFile && b.packageName != "" {
+		if _, err := buf.WriteString("package " + b.packageName + "\n\n"); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 func (b *Bavard) create(output string, buf *bytes.Buffer) error {
+	if b.docFile && b.packageName != "" {
+		if _, err := buf.WriteString("package " + b.packageName + "\n"); err != nil {
+			return err
+		}
+	}
 	// create output dir if not exist
 	_ = os.MkdirAll(filepath.Dir(output), os.ModePerm)
 
