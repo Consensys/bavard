@@ -36,7 +36,15 @@ func helpers() template.FuncMap {
 		"mul":        mul,
 		"div":        div,
 		"divides":    divides,
+		"iterate":    iterate,
 	}
+}
+
+func iterate(maxBound *uint) (r []uint) {
+	for i := uint(0); i < (*maxBound); i++ {
+		r = append(r, i)
+	}
+	return
 }
 
 func reverse(input []int) []int {
