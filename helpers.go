@@ -40,8 +40,8 @@ func helpers() template.FuncMap {
 	}
 }
 
-func iterate(maxBound *uint) (r []uint) {
-	for i := uint(0); i < (*maxBound); i++ {
+func iterate(maxBound int) (r []int) {
+	for i := 0; i < maxBound; i++ {
 		r = append(r, i)
 	}
 	return
