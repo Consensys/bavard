@@ -28,6 +28,8 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+
+	"rsc.io/tmplfunc"
 )
 
 // Bavard root object to configure the code generation from text/template
@@ -84,9 +86,11 @@ func GenerateFromString(output string, templates []string, data interface{}, opt
 		fnHelpers[k] = v
 	}
 
-	tmpl := template.Must(template.New("").
-		Funcs(fnHelpers).
-		Parse(aggregate(templates)))
+	tmpl := template.New("").Funcs(fnHelpers)
+
+	if err := tmplfunc.Parse(tmpl, aggregate(templates)); err != nil {
+		return err
+	}
 
 	// execute template
 	if err := tmpl.Execute(&buf, data); err != nil {
@@ -115,8 +119,9 @@ func GenerateFromFiles(output string, templateF []string, data interface{}, opti
 	}
 	tName := path.Base(templateF[0])
 
-	tmpl, err := template.New(tName).Funcs(fnHelpers).ParseFiles(templateF...)
-	if err != nil {
+	tmpl := template.New(tName).Funcs(fnHelpers)
+
+	if err := tmplfunc.ParseFiles(tmpl, templateF...); err != nil {
 		return err
 	}
 
