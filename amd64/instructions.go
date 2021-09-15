@@ -76,6 +76,10 @@ func (amd64 *Amd64) MOVQ(r1, r2 interface{}, comment ...string) {
 	}
 }
 
+func (amd64 *Amd64) BTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "BTQ", r1, r2)
+}
+
 func (amd64 *Amd64) MOVUPS(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVUPS", r1, r2)
 }
@@ -98,6 +102,14 @@ func (amd64 *Amd64) SHRQ(r1, r2 interface{}, comment ...string) {
 
 func (amd64 *Amd64) SHRQw(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "SHRQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) SHRXQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SHRXQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) TZCNTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "TZCNTQ", r1, r2)
 }
 
 func (amd64 *Amd64) INCQ(r1 interface{}, comment ...string) {
@@ -140,6 +152,10 @@ func (amd64 *Amd64) TESTQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "TESTQ", r1, r2)
 }
 
+func (amd64 *Amd64) XCHGQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "XCHGQ", r1, r2)
+}
+
 func (amd64 *Amd64) CMOVQCC(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "CMOVQCC", r1, r2)
 }
@@ -156,24 +172,32 @@ func (amd64 *Amd64) LABEL(l Label) {
 	amd64.WriteLn(string(l) + ":")
 }
 
+// JNE x86 JNZ Jump short if not zero (ZF=0).
 func (amd64 *Amd64) JNE(label Label, comment ...string) {
 	amd64.writeOp(comment, "JNE", string(label))
 }
 
+// JEQ: x86 JZ Jump short if zero (ZF = 1).
 func (amd64 *Amd64) JEQ(label Label, comment ...string) {
 	amd64.writeOp(comment, "JEQ", string(label))
 }
 
+// JCS x86 JB Jump short if below (CF=1).
 func (amd64 *Amd64) JCS(label Label, comment ...string) {
 	amd64.writeOp(comment, "JCS", string(label))
 }
 
+// JCC x86 JNB Jump short if not below (CF=0).
 func (amd64 *Amd64) JCC(label Label, comment ...string) {
 	amd64.writeOp(comment, "JCC", string(label))
 }
 
 func (amd64 *Amd64) JMP(label Label, comment ...string) {
 	amd64.writeOp(comment, "JMP", string(label))
+}
+
+func (amd64 *Amd64) JL(label Label, comment ...string) {
+	amd64.writeOp(comment, "JL", string(label))
 }
 
 func (amd64 *Amd64) Comment(s string) {
