@@ -37,11 +37,16 @@ func helpers() template.FuncMap {
 		"list":       printList,
 		"mul":        mul,
 		"mul2":       mul2,
+		"notNil":     notNil,
 		"reverse":    reverse,
 		"sub":        sub,
 		"toLower":    strings.ToLower,
 		"toUpper":    strings.ToUpper,
 	}
+}
+
+func notNil(input *interface{}) bool {
+	return input != nil
 }
 
 func last(input []interface{}) interface{} {
