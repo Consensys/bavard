@@ -16,8 +16,10 @@ package bavard
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -25,19 +27,47 @@ import (
 func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
-		"reverse":    reverse,
 		"add":        add,
-		"sub":        sub,
-		"toLower":    strings.ToLower,
-		"toUpper":    strings.ToUpper,
 		"capitalize": strings.Title,
 		"dict":       dict,
-		"mul2":       mul2,
-		"mul":        mul,
 		"div":        div,
 		"divides":    divides,
 		"iterate":    iterate,
+		"last":       last,
+		"list":       printList,
+		"mul":        mul,
+		"mul2":       mul2,
+		"reverse":    reverse,
+		"sub":        sub,
+		"toLower":    strings.ToLower,
+		"toUpper":    strings.ToUpper,
 	}
+}
+
+func last(input []interface{}) interface{} {
+	return input[len(input)-1]
+}
+
+var stringBuilderPool = sync.Pool{New: func() interface{} { return strings.Builder{} }}
+
+func printList(input []interface{}) string {
+
+	if len(input) == 0 {
+		return ""
+	}
+
+	builder := stringBuilderPool.Get().(*strings.Builder)
+	builder.Reset()
+	defer stringBuilderPool.Put(builder)
+
+	builder.WriteString(fmt.Sprint(input[0]))
+
+	for i := 1; i < len(input); i++ {
+		builder.WriteString(", ")
+		builder.WriteString(fmt.Sprint(input[i]))
+	}
+
+	return builder.String()
 }
 
 func iterate(maxBound int) (r []int) {
