@@ -17,6 +17,7 @@ package bavard
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,12 +33,14 @@ func helpers() template.FuncMap {
 		"dict":       dict,
 		"div":        div,
 		"divides":    divides,
+		"interval":   interval,
 		"iterate":    iterate,
 		"last":       last,
-		"list":       printList,
+		"list":       makeSlice,
 		"mul":        mul,
 		"mul2":       mul2,
 		"notNil":     notNil,
+		"printList":  printList,
 		"reverse":    reverse,
 		"sub":        sub,
 		"toLower":    strings.ToLower,
@@ -45,34 +48,62 @@ func helpers() template.FuncMap {
 	}
 }
 
-func notNil(input *interface{}) bool {
-	return input != nil
+func interval(begin, end int) []int {
+	l := end - begin
+	r := make([]int, l)
+	for i := 0; i < l; i++ {
+		r[i] = i + begin
+	}
+	return r
 }
 
-func last(input []interface{}) interface{} {
-	return input[len(input)-1]
+// Adopted from https://stackoverflow.com/a/50487104/5116581
+func notNil(input interface{}) bool {
+	isNil := input == nil || (reflect.ValueOf(input).Kind() == reflect.Ptr && reflect.ValueOf(input).IsNil())
+	return !isNil
 }
 
-var stringBuilderPool = sync.Pool{New: func() interface{} { return strings.Builder{} }}
+func assertSlice(input interface{}) (reflect.Value, error) {
+	s := reflect.ValueOf(input)
+	if s.Kind() != reflect.Slice {
+		return s, fmt.Errorf("value %s is not a slice", fmt.Sprint(s))
+	}
+	return s, nil
+}
 
-func printList(input []interface{}) string {
+func last(input interface{}) (interface{}, error) {
+	s, err := assertSlice(input)
+	if err != nil {
+		return nil, err
+	}
+	if s.Len() == 0 {
+		return nil, fmt.Errorf("empty slice")
+	}
+	return s.Index(s.Len() - 1).Interface(), nil
+}
 
-	if len(input) == 0 {
-		return ""
+var stringBuilderPool = sync.Pool{New: func() interface{} { return &strings.Builder{} }}
+
+func printList(input interface{}) (string, error) {
+
+	s, err := assertSlice(input)
+
+	if err != nil || s.Len() == 0 {
+		return "", err
 	}
 
 	builder := stringBuilderPool.Get().(*strings.Builder)
 	builder.Reset()
 	defer stringBuilderPool.Put(builder)
 
-	builder.WriteString(fmt.Sprint(input[0]))
+	builder.WriteString(fmt.Sprint(s.Index(0).Interface()))
 
-	for i := 1; i < len(input); i++ {
+	for i := 1; i < s.Len(); i++ {
 		builder.WriteString(", ")
-		builder.WriteString(fmt.Sprint(input[i]))
+		builder.WriteString(fmt.Sprint(s.Index(i).Interface()))
 	}
 
-	return builder.String()
+	return builder.String(), nil
 }
 
 func iterate(maxBound int) (r []int) {
@@ -82,14 +113,20 @@ func iterate(maxBound int) (r []int) {
 	return
 }
 
-func reverse(input []int) []int {
-	toReturn := make([]int, len(input))
-	j := 0
-	for i := len(input) - 1; i >= 0; i-- {
-		toReturn[j] = input[i]
-		j++
+func reverse(input interface{}) interface{} {
+
+	s, err := assertSlice(input)
+	if err != nil {
+		return err
 	}
-	return toReturn
+	l := s.Len()
+	toReturn := reflect.MakeSlice(s.Type(), l, l)
+
+	l--
+	for i := 0; i <= l; i++ {
+		toReturn.Index(l - i).Set(s.Index(i))
+	}
+	return toReturn.Interface()
 }
 func add(a, b int) int {
 	return a + b
@@ -105,6 +142,10 @@ func mul2(a int) int {
 }
 func div(a, b int) int {
 	return a / b
+}
+
+func makeSlice(values ...interface{}) []interface{} {
+	return values
 }
 
 func dict(values ...interface{}) (map[string]interface{}, error) {
