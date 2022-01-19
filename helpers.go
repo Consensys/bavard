@@ -17,6 +17,8 @@ package bavard
 import (
 	"errors"
 	"fmt"
+	"math/big"
+	"math/bits"
 	"reflect"
 	"strconv"
 	"strings"
@@ -29,6 +31,7 @@ func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
 		"add":        add,
+		"bytes":      intBytes, //TODO: Do this directly
 		"capitalize": strings.Title,
 		"dict":       dict,
 		"div":        div,
@@ -37,6 +40,7 @@ func helpers() template.FuncMap {
 		"iterate":    iterate,
 		"last":       last,
 		"list":       makeSlice,
+		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
 		"notNil":     notNil,
@@ -45,7 +49,40 @@ func helpers() template.FuncMap {
 		"sub":        sub,
 		"toLower":    strings.ToLower,
 		"toUpper":    strings.ToUpper,
+		"words64":    printBigIntAsUint64Slice,
 	}
+}
+
+func toInt64(a interface{}) (int64, error) {
+	switch i := a.(type) {
+	case uint8:
+		return int64(i), nil
+	case int:
+		return int64(i), nil
+	default:
+		return 0, fmt.Errorf("cannot convert to int64 from type %T", i)
+	}
+}
+
+func mod(a, b interface{}) (int64, error) {
+
+	var err error
+	A, err := toInt64(a)
+
+	if err != nil {
+		return 0, err
+	}
+
+	B, err := toInt64(b)
+
+	if err != nil {
+		return 0, err
+	}
+	return A % B, nil
+}
+
+func intBytes(i big.Int) []byte {
+	return i.Bytes()
 }
 
 func interval(begin, end int) []int {
@@ -83,6 +120,47 @@ func last(input interface{}) (interface{}, error) {
 }
 
 var stringBuilderPool = sync.Pool{New: func() interface{} { return &strings.Builder{} }}
+
+func printBigIntAsUint64Slice(in interface{}) (string, error) {
+
+	var input *big.Int
+
+	switch i := in.(type) {
+	case big.Int:
+		input = &i
+	case *big.Int:
+		input = i
+	default:
+		return "", fmt.Errorf("unsupported type %T", in)
+	}
+
+	words := input.Bits()
+
+	if len(words) == 0 {
+		return "0", nil
+	}
+
+	builder := stringBuilderPool.Get().(*strings.Builder)
+	builder.Reset()
+	defer stringBuilderPool.Put(builder)
+
+	for i := 0; i < len(words); i++ {
+		w := uint64(words[i])
+
+		if bits.UintSize == 32 && i < len(words)-1 {
+			i++
+			w = (w << 32) | uint64(words[i])
+		}
+
+		builder.WriteString(strconv.FormatUint(w, 10))
+
+		if i < len(words)-1 {
+			builder.WriteString(", ")
+		}
+	}
+
+	return builder.String(), nil
+}
 
 func printList(input interface{}) (string, error) {
 
