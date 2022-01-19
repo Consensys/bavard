@@ -16,8 +16,13 @@ package bavard
 
 import (
 	"errors"
+	"fmt"
+	"math/big"
+	"math/bits"
+	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -25,19 +30,158 @@ import (
 func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
-		"reverse":    reverse,
 		"add":        add,
+		"bytes":      intBytes, //TODO: Do this directly
+		"capitalize": strings.Title,
+		"dict":       dict,
+		"div":        div,
+		"divides":    divides,
+		"interval":   interval,
+		"iterate":    iterate,
+		"last":       last,
+		"list":       makeSlice,
+		"mod":        mod,
+		"mul":        mul,
+		"mul2":       mul2,
+		"notNil":     notNil,
+		"printList":  printList,
+		"reverse":    reverse,
 		"sub":        sub,
 		"toLower":    strings.ToLower,
 		"toUpper":    strings.ToUpper,
-		"capitalize": strings.Title,
-		"dict":       dict,
-		"mul2":       mul2,
-		"mul":        mul,
-		"div":        div,
-		"divides":    divides,
-		"iterate":    iterate,
+		"words64":    printBigIntAsUint64Slice,
 	}
+}
+
+func toInt64(a interface{}) (int64, error) {
+	switch i := a.(type) {
+	case uint8:
+		return int64(i), nil
+	case int:
+		return int64(i), nil
+	default:
+		return 0, fmt.Errorf("cannot convert to int64 from type %T", i)
+	}
+}
+
+func mod(a, b interface{}) (int64, error) {
+
+	var err error
+	A, err := toInt64(a)
+
+	if err != nil {
+		return 0, err
+	}
+
+	B, err := toInt64(b)
+
+	if err != nil {
+		return 0, err
+	}
+	return A % B, nil
+}
+
+func intBytes(i big.Int) []byte {
+	return i.Bytes()
+}
+
+func interval(begin, end int) []int {
+	l := end - begin
+	r := make([]int, l)
+	for i := 0; i < l; i++ {
+		r[i] = i + begin
+	}
+	return r
+}
+
+// Adopted from https://stackoverflow.com/a/50487104/5116581
+func notNil(input interface{}) bool {
+	isNil := input == nil || (reflect.ValueOf(input).Kind() == reflect.Ptr && reflect.ValueOf(input).IsNil())
+	return !isNil
+}
+
+func assertSlice(input interface{}) (reflect.Value, error) {
+	s := reflect.ValueOf(input)
+	if s.Kind() != reflect.Slice {
+		return s, fmt.Errorf("value %s is not a slice", fmt.Sprint(s))
+	}
+	return s, nil
+}
+
+func last(input interface{}) (interface{}, error) {
+	s, err := assertSlice(input)
+	if err != nil {
+		return nil, err
+	}
+	if s.Len() == 0 {
+		return nil, fmt.Errorf("empty slice")
+	}
+	return s.Index(s.Len() - 1).Interface(), nil
+}
+
+var stringBuilderPool = sync.Pool{New: func() interface{} { return &strings.Builder{} }}
+
+func printBigIntAsUint64Slice(in interface{}) (string, error) {
+
+	var input *big.Int
+
+	switch i := in.(type) {
+	case big.Int:
+		input = &i
+	case *big.Int:
+		input = i
+	default:
+		return "", fmt.Errorf("unsupported type %T", in)
+	}
+
+	words := input.Bits()
+
+	if len(words) == 0 {
+		return "0", nil
+	}
+
+	builder := stringBuilderPool.Get().(*strings.Builder)
+	builder.Reset()
+	defer stringBuilderPool.Put(builder)
+
+	for i := 0; i < len(words); i++ {
+		w := uint64(words[i])
+
+		if bits.UintSize == 32 && i < len(words)-1 {
+			i++
+			w = (w << 32) | uint64(words[i])
+		}
+
+		builder.WriteString(strconv.FormatUint(w, 10))
+
+		if i < len(words)-1 {
+			builder.WriteString(", ")
+		}
+	}
+
+	return builder.String(), nil
+}
+
+func printList(input interface{}) (string, error) {
+
+	s, err := assertSlice(input)
+
+	if err != nil || s.Len() == 0 {
+		return "", err
+	}
+
+	builder := stringBuilderPool.Get().(*strings.Builder)
+	builder.Reset()
+	defer stringBuilderPool.Put(builder)
+
+	builder.WriteString(fmt.Sprint(s.Index(0).Interface()))
+
+	for i := 1; i < s.Len(); i++ {
+		builder.WriteString(", ")
+		builder.WriteString(fmt.Sprint(s.Index(i).Interface()))
+	}
+
+	return builder.String(), nil
 }
 
 func iterate(maxBound int) (r []int) {
@@ -47,14 +191,20 @@ func iterate(maxBound int) (r []int) {
 	return
 }
 
-func reverse(input []int) []int {
-	toReturn := make([]int, len(input))
-	j := 0
-	for i := len(input) - 1; i >= 0; i-- {
-		toReturn[j] = input[i]
-		j++
+func reverse(input interface{}) interface{} {
+
+	s, err := assertSlice(input)
+	if err != nil {
+		return err
 	}
-	return toReturn
+	l := s.Len()
+	toReturn := reflect.MakeSlice(s.Type(), l, l)
+
+	l--
+	for i := 0; i <= l; i++ {
+		toReturn.Index(l - i).Set(s.Index(i))
+	}
+	return toReturn.Interface()
 }
 func add(a, b int) int {
 	return a + b
@@ -70,6 +220,10 @@ func mul2(a int) int {
 }
 func div(a, b int) int {
 	return a / b
+}
+
+func makeSlice(values ...interface{}) []interface{} {
+	return values
 }
 
 func dict(values ...interface{}) (map[string]interface{}, error) {
