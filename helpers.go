@@ -31,11 +31,13 @@ func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
 		"add":        add,
+		"bits":       getBits,
 		"bytes":      intBytes, //TODO: Do this directly
 		"capitalize": strings.Title,
 		"dict":       dict,
 		"div":        div,
 		"divides":    divides,
+		"first":      first,
 		"interval":   interval,
 		"iterate":    iterate,
 		"last":       last,
@@ -43,6 +45,8 @@ func helpers() template.FuncMap {
 		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
+		"noFirst":    noFirst,
+		"noLast":     noLast,
 		"notNil":     notNil,
 		"printList":  printList,
 		"reverse":    reverse,
@@ -51,6 +55,23 @@ func helpers() template.FuncMap {
 		"toUpper":    strings.ToUpper,
 		"words64":    printBigIntAsUint64Slice,
 	}
+}
+
+func getBits(a interface{}) ([]bool, error) {
+
+	var res []bool
+	aI, err := toInt64(a)
+
+	if err != nil {
+		return res, err
+	}
+
+	for aI != 0 {
+		res = append(res, aI%2 != 0)
+		aI /= 2
+	}
+
+	return res, nil
 }
 
 func toInt64(a interface{}) (int64, error) {
@@ -106,6 +127,17 @@ func assertSlice(input interface{}) (reflect.Value, error) {
 		return s, fmt.Errorf("value %s is not a slice", fmt.Sprint(s))
 	}
 	return s, nil
+}
+
+func first(input interface{}) (interface{}, error) {
+	s, err := assertSlice(input)
+	if err != nil {
+		return nil, err
+	}
+	if s.Len() == 0 {
+		return nil, fmt.Errorf("empty slice")
+	}
+	return s.Index(0).Interface(), nil
 }
 
 func last(input interface{}) (interface{}, error) {
@@ -206,6 +238,39 @@ func reverse(input interface{}) interface{} {
 	}
 	return toReturn.Interface()
 }
+
+func noFirst(input interface{}) interface{} {
+	s, err := assertSlice(input)
+	if s.Len() == 0 {
+		return input
+	}
+	if err != nil {
+		return err
+	}
+	l := s.Len() - 1
+	toReturn := reflect.MakeSlice(s.Type(), l, l)
+	for i := 0; i < l; i++ {
+		toReturn.Index(i).Set(s.Index(i + 1))
+	}
+	return toReturn.Interface()
+}
+
+func noLast(input interface{}) interface{} {
+	s, err := assertSlice(input)
+	if s.Len() == 0 {
+		return input
+	}
+	if err != nil {
+		return err
+	}
+	l := s.Len() - 1
+	toReturn := reflect.MakeSlice(s.Type(), l, l)
+	for i := 0; i < l; i++ {
+		toReturn.Index(i).Set(s.Index(i))
+	}
+	return toReturn.Interface()
+}
+
 func add(a, b int) int {
 	return a + b
 }
