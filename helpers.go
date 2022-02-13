@@ -52,6 +52,7 @@ func helpers() template.FuncMap {
 		"reverse":    reverse,
 		"sub":        sub,
 		"toLower":    strings.ToLower,
+		"toTitle":	strings.Title,
 		"toUpper":    strings.ToUpper,
 		"words64":    printBigIntAsUint64Slice,
 	}
@@ -106,13 +107,22 @@ func intBytes(i big.Int) []byte {
 	return i.Bytes()
 }
 
-func interval(begin, end int) []int {
-	l := end - begin
-	r := make([]int, l)
-	for i := 0; i < l; i++ {
-		r[i] = i + begin
+func interval(begin, end interface{}) ([]int64, error) {
+	beginInt, err := toInt64(begin)
+	if err != nil {
+		return nil, err
 	}
-	return r
+	endInt, err := toInt64(end)
+	if err != nil {
+		return nil, err
+	}
+
+	l := endInt - beginInt
+	r := make([]int64, l)
+	for i := int64(0); i < l; i++ {
+		r[i] = i + beginInt
+	}
+	return r, nil
 }
 
 // Adopted from https://stackoverflow.com/a/50487104/5116581
