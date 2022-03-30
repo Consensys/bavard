@@ -42,6 +42,10 @@ func (arm64 *Arm64) SBCS(subtrahend, minuend, difference interface{}, comment ..
 	arm64.writeOp(comment, "SBCS", subtrahend, minuend, difference)
 }
 
+func (arm64 *Arm64) ORR(op1, op2, dst interface{}, comment ...string) {
+	arm64.writeOp(comment, "ORR", op1, op2, dst)
+}
+
 func (arm64 *Arm64) MOVD(src, dst interface{}, comment ...string) {
 	arm64.writeOp(comment, "MOVD", src, dst)
 }
