@@ -9,7 +9,7 @@ type Register uint
 
 // Registers 1 means available to use
 type Registers uint32
-const registersCount = 30
+const registersCount = 28
 
 func (r Register) At(wordOffset int) string {
 	return fmt.Sprintf("%d(R%d)", wordOffset*8, uint(r))

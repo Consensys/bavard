@@ -30,6 +30,10 @@ func (arm64 *Arm64) ADCS(op1, op2, dst interface{}, comment ...string) {
 	arm64.writeOp(comment, "ADCS", op1, op2, dst)
 }
 
+func (arm64 *Arm64) ADC(op1, op2, dst interface{}, comment ...string) {
+	arm64.writeOp(comment, "ADC", op1, op2, dst)
+}
+
 func (arm64 *Arm64) SUBS(subtrahend, minuend, difference interface{}, comment ...string) {
 	arm64.writeOp(comment, "SUBS", subtrahend, minuend, difference)
 }
@@ -46,6 +50,14 @@ func (arm64 *Arm64) CSEL(condition string, ifTrue, ifFalse, dst interface{}, com
 	arm64.writeOp(comment, "CSEL", condition, ifTrue, ifFalse, dst)
 }
 
+func (arm64 *Arm64) TST(a, b interface{}, comment ...string) {
+	arm64.writeOp(comment, "TST", a, b)
+}
+
+func (arm64 *Arm64) CMP(a, b interface{}, comment ...string) {
+	arm64.writeOp(comment, "CMP", a, b)
+}
+
 func (arm64 *Arm64) RegisterOffset(r Register, offset int) string {
 	return fmt.Sprintf("%d(R%d)", offset, r)
 }
@@ -55,6 +67,12 @@ func (arm64 *Arm64) GlobalOffset(name string, offset int) string {
 }
 
 //<copy paste> TODO: Super class?
+
+type Label string
+
+func (arm64 *Arm64) LABEL(l Label) {
+	arm64.WriteLn(string(l) + ":")
+}
 
 func (arm64 *Arm64) RET() {
 	arm64.WriteLn("    RET")
