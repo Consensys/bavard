@@ -66,5 +66,7 @@ func (r *Registers) Remove(registers ...Register) {
 }
 
 func NewRegisters() Registers {
-	return 1 << registersCount - 1
+	// R18 is reserved
+	return (1 << registersCount - 1) &
+		^(1 << 18)
 }
