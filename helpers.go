@@ -42,6 +42,7 @@ func helpers() template.FuncMap {
 		"iterate":    iterate,
 		"last":       last,
 		"list":       makeSlice,
+		"log": fmt.Println,
 		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
@@ -51,6 +52,7 @@ func helpers() template.FuncMap {
 		"printList":  printList,
 		"reverse":    reverse,
 		"sub":        sub,
+		"toInt64":    toInt64,
 		"toLower":    strings.ToLower,
 		"toTitle":	strings.Title,
 		"toUpper":    strings.ToUpper,
@@ -79,6 +81,23 @@ func toInt64(a interface{}) (int64, error) {
 	switch i := a.(type) {
 	case uint8:
 		return int64(i), nil
+	case int8:
+		return int64(i), nil
+	case uint16:
+		return int64(i), nil
+	case int16:
+		return int64(i), nil
+	case uint32:
+		return int64(i), nil
+	case int32:
+		return int64(i), nil
+	case uint64:
+		if i >> 63 != 0 {
+			return 0, fmt.Errorf("uint64 value too large, won't fit in an int64")
+		}
+		return int64(i), nil
+	case int64:
+		return i, nil
 	case int:
 		return int64(i), nil
 	default:
@@ -226,8 +245,14 @@ func printList(input interface{}) (string, error) {
 	return builder.String(), nil
 }
 
-func iterate(maxBound int) (r []int) {
-	for i := 0; i < maxBound; i++ {
+func iterate(maxBound interface{}) (r []int64, err error) {
+
+	var maxBoundI int64
+
+	if maxBoundI, err = toInt64(maxBound); err != nil {
+		return
+	}
+	for i := int64(0); i < maxBoundI; i++ {
 		r = append(r, i)
 	}
 	return
@@ -281,20 +306,57 @@ func noLast(input interface{}) interface{} {
 	return toReturn.Interface()
 }
 
-func add(a, b int) int {
-	return a + b
+func add(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI + bI, nil
 }
-func mul(a, b int) int {
-	return a * b
+func mul(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI * bI, nil
 }
-func sub(a, b int) int {
-	return a - b
+func sub(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI - bI, nil
 }
-func mul2(a int) int {
-	return a * 2
+func mul2(a interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+
+	return aI * 2, nil
 }
-func div(a, b int) int {
-	return a / b
+func div(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI / bI, nil
 }
 
 func makeSlice(values ...interface{}) []interface{} {
@@ -317,18 +379,18 @@ func dict(values ...interface{}) (map[string]interface{}, error) {
 }
 
 // return true if c1 divides c2, that is, c2 % c1 == 0
-func divides(c1, c2 interface{}) bool {
-	switch cc1 := c1.(type) {
+func divides(c1, c2 interface{}) (bool, error) {
+	/*switch cc1 := c1.(type) {
 	case int:
 		switch cc2 := c2.(type) {
 		case int:
-			return cc2%cc1 == 0
+			return cc2%cc1 == 0, nil
 		case string:
 			c2Int, err := strconv.Atoi(cc2)
 			if err != nil {
-				panic(err)
+				return false, err
 			}
-			return c2Int%cc1 == 0
+			return c2Int%cc1 == 0, nil
 		}
 	case string:
 		c1Int, err := strconv.Atoi(cc1)
@@ -337,14 +399,26 @@ func divides(c1, c2 interface{}) bool {
 		}
 		switch cc2 := c2.(type) {
 		case int:
-			return cc2%c1Int == 0
+			return cc2%c1Int == 0, nil
 		case string:
 			c2Int, err := strconv.Atoi(cc2)
 			if err != nil {
-				panic(err)
+				return false, err
 			}
-			return c2Int%c1Int == 0
+			return c2Int%c1Int == 0, nil
 		}
+	}*/
+
+	//try to convert to int64
+	c1Int, err := toInt64(c1)
+	if err != nil {
+		return false, err
 	}
-	panic("unexpected type")
+	var c2Int int64
+	c2Int, err = toInt64(c2)
+	if err != nil {
+		return false, err
+	}
+
+	return c2Int%c1Int == 0, nil
 }
