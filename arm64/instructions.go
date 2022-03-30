@@ -31,11 +31,11 @@ func (arm64 *Arm64) ADCS(op1, op2, dst interface{}, comment ...string) {
 }
 
 func (arm64 *Arm64) SUBS(subtrahend, minuend, difference interface{}, comment ...string) {
-	arm64.writeOp(comment, "ADCS", subtrahend, minuend, difference)
+	arm64.writeOp(comment, "SUBS", subtrahend, minuend, difference)
 }
 
 func (arm64 *Arm64) SBCS(subtrahend, minuend, difference interface{}, comment ...string) {
-	arm64.writeOp(comment, "ADCS", subtrahend, minuend, difference)
+	arm64.writeOp(comment, "SBCS", subtrahend, minuend, difference)
 }
 
 func (arm64 *Arm64) MOVD(src, dst interface{}, comment ...string) {
