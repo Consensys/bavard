@@ -52,7 +52,7 @@ func helpers() template.FuncMap {
 		"reverse":    reverse,
 		"sub":        sub,
 		"toLower":    strings.ToLower,
-		"toTitle":	strings.Title,
+		"toTitle":    strings.Title,
 		"toUpper":    strings.ToUpper,
 		"words64":    printBigIntAsUint64Slice,
 	}
@@ -226,8 +226,8 @@ func printList(input interface{}) (string, error) {
 	return builder.String(), nil
 }
 
-func iterate(maxBound int) (r []int) {
-	for i := 0; i < maxBound; i++ {
+func iterate(start, end int) (r []int) {
+	for i := start; i < end; i++ {
 		r = append(r, i)
 	}
 	return
