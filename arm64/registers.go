@@ -11,6 +11,10 @@ type Register uint
 type Registers uint32
 const registersCount = 28
 
+func (r Register) Name() string {
+	return fmt.Sprintf("R%d", r)
+}
+
 func (r Register) At(wordOffset int) string {
 	return fmt.Sprintf("%d(R%d)", wordOffset*8, uint(r))
 }

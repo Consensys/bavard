@@ -15,6 +15,7 @@
 package bavard
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/big"
@@ -52,6 +53,7 @@ func helpers() template.FuncMap {
 		"printList":  printList,
 		"reverse":    reverse,
 		"sub":        sub,
+		"supScr":	toSuperscript,
 		"toInt64":    toInt64,
 		"toLower":    strings.ToLower,
 		"toTitle":	strings.Title,
@@ -150,7 +152,7 @@ func notNil(input interface{}) bool {
 	return !isNil
 }
 
-func assertSlice(input interface{}) (reflect.Value, error) {
+func AssertSlice(input interface{}) (reflect.Value, error) {
 	s := reflect.ValueOf(input)
 	if s.Kind() != reflect.Slice {
 		return s, fmt.Errorf("value %s is not a slice", fmt.Sprint(s))
@@ -159,7 +161,7 @@ func assertSlice(input interface{}) (reflect.Value, error) {
 }
 
 func first(input interface{}) (interface{}, error) {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +172,7 @@ func first(input interface{}) (interface{}, error) {
 }
 
 func last(input interface{}) (interface{}, error) {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +227,7 @@ func printBigIntAsUint64Slice(in interface{}) (string, error) {
 
 func printList(input interface{}) (string, error) {
 
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 
 	if err != nil || s.Len() == 0 {
 		return "", err
@@ -260,7 +262,7 @@ func iterate(maxBound interface{}) (r []int64, err error) {
 
 func reverse(input interface{}) interface{} {
 
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return err
 	}
@@ -275,7 +277,7 @@ func reverse(input interface{}) interface{} {
 }
 
 func noFirst(input interface{}) interface{} {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if s.Len() == 0 {
 		return input
 	}
@@ -291,7 +293,7 @@ func noFirst(input interface{}) interface{} {
 }
 
 func noLast(input interface{}) interface{} {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if s.Len() == 0 {
 		return input
 	}
@@ -421,4 +423,36 @@ func divides(c1, c2 interface{}) (bool, error) {
 	}
 
 	return c2Int%c1Int == 0, nil
+}
+
+// Imitating supsub
+var superscripts = map[rune]rune{
+	'0': '⁰',
+	'1': '¹',
+	'2': '²',
+	'3': '³',
+	'4': '⁴',
+	'5': '⁵',
+	'6': '⁶',
+	'7': '⁷',
+	'8': '⁸',
+	'9': '⁹',
+}
+
+//TODO: Use https://github.com/lynn9388/supsub ?
+//Copying supsub
+func toSuperscript(a interface{}) (string, error) {
+	i, err := toInt64(a)
+
+	if err != nil {
+		return "",err
+	}
+
+	s := strconv.FormatInt(i, 10)
+	var buf bytes.Buffer
+	for _, r := range s {
+		sup := superscripts[r]
+		buf.WriteRune(sup)
+	}
+	return buf.String(), nil
 }
