@@ -15,6 +15,7 @@
 package bavard
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/big"
@@ -42,6 +43,7 @@ func helpers() template.FuncMap {
 		"iterate":    iterate,
 		"last":       last,
 		"list":       makeSlice,
+		"log":        fmt.Println,
 		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
@@ -51,6 +53,8 @@ func helpers() template.FuncMap {
 		"printList":  printList,
 		"reverse":    reverse,
 		"sub":        sub,
+		"supScr":     toSuperscript,
+		"toInt64":    toInt64,
 		"toLower":    strings.ToLower,
 		"toTitle":    strings.Title,
 		"toUpper":    strings.ToUpper,
@@ -79,6 +83,23 @@ func toInt64(a interface{}) (int64, error) {
 	switch i := a.(type) {
 	case uint8:
 		return int64(i), nil
+	case int8:
+		return int64(i), nil
+	case uint16:
+		return int64(i), nil
+	case int16:
+		return int64(i), nil
+	case uint32:
+		return int64(i), nil
+	case int32:
+		return int64(i), nil
+	case uint64:
+		if i>>63 != 0 {
+			return 0, fmt.Errorf("uint64 value too large, won't fit in an int64")
+		}
+		return int64(i), nil
+	case int64:
+		return i, nil
 	case int:
 		return int64(i), nil
 	default:
@@ -131,7 +152,7 @@ func notNil(input interface{}) bool {
 	return !isNil
 }
 
-func assertSlice(input interface{}) (reflect.Value, error) {
+func AssertSlice(input interface{}) (reflect.Value, error) {
 	s := reflect.ValueOf(input)
 	if s.Kind() != reflect.Slice {
 		return s, fmt.Errorf("value %s is not a slice", fmt.Sprint(s))
@@ -140,7 +161,7 @@ func assertSlice(input interface{}) (reflect.Value, error) {
 }
 
 func first(input interface{}) (interface{}, error) {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +172,7 @@ func first(input interface{}) (interface{}, error) {
 }
 
 func last(input interface{}) (interface{}, error) {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +227,7 @@ func printBigIntAsUint64Slice(in interface{}) (string, error) {
 
 func printList(input interface{}) (string, error) {
 
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 
 	if err != nil || s.Len() == 0 {
 		return "", err
@@ -226,8 +247,20 @@ func printList(input interface{}) (string, error) {
 	return builder.String(), nil
 }
 
-func iterate(start, end int) (r []int) {
-	for i := start; i < end; i++ {
+func iterate(start, end interface{}) (r []int64, err error) {
+
+	startI, err := toInt64(start)
+	if err != nil {
+		return nil, err
+	}
+	var endI int64
+	endI, err = toInt64(end)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := startI; i < endI; i++ {
 		r = append(r, i)
 	}
 	return
@@ -235,7 +268,7 @@ func iterate(start, end int) (r []int) {
 
 func reverse(input interface{}) interface{} {
 
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if err != nil {
 		return err
 	}
@@ -250,7 +283,7 @@ func reverse(input interface{}) interface{} {
 }
 
 func noFirst(input interface{}) interface{} {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if s.Len() == 0 {
 		return input
 	}
@@ -266,7 +299,7 @@ func noFirst(input interface{}) interface{} {
 }
 
 func noLast(input interface{}) interface{} {
-	s, err := assertSlice(input)
+	s, err := AssertSlice(input)
 	if s.Len() == 0 {
 		return input
 	}
@@ -281,20 +314,57 @@ func noLast(input interface{}) interface{} {
 	return toReturn.Interface()
 }
 
-func add(a, b int) int {
-	return a + b
+func add(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI + bI, nil
 }
-func mul(a, b int) int {
-	return a * b
+func mul(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI * bI, nil
 }
-func sub(a, b int) int {
-	return a - b
+func sub(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI - bI, nil
 }
-func mul2(a int) int {
-	return a * 2
+func mul2(a interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+
+	return aI * 2, nil
 }
-func div(a, b int) int {
-	return a / b
+func div(a, b interface{}) (int64, error) {
+	aI, err := toInt64(a)
+	if err != nil {
+		return 0, err
+	}
+	var bI int64
+	if bI, err = toInt64(b); err != nil {
+		return 0, err
+	}
+	return aI / bI, nil
 }
 
 func makeSlice(values ...interface{}) []interface{} {
@@ -317,18 +387,18 @@ func dict(values ...interface{}) (map[string]interface{}, error) {
 }
 
 // return true if c1 divides c2, that is, c2 % c1 == 0
-func divides(c1, c2 interface{}) bool {
-	switch cc1 := c1.(type) {
+func divides(c1, c2 interface{}) (bool, error) {
+	/*switch cc1 := c1.(type) {
 	case int:
 		switch cc2 := c2.(type) {
 		case int:
-			return cc2%cc1 == 0
+			return cc2%cc1 == 0, nil
 		case string:
 			c2Int, err := strconv.Atoi(cc2)
 			if err != nil {
-				panic(err)
+				return false, err
 			}
-			return c2Int%cc1 == 0
+			return c2Int%cc1 == 0, nil
 		}
 	case string:
 		c1Int, err := strconv.Atoi(cc1)
@@ -337,14 +407,58 @@ func divides(c1, c2 interface{}) bool {
 		}
 		switch cc2 := c2.(type) {
 		case int:
-			return cc2%c1Int == 0
+			return cc2%c1Int == 0, nil
 		case string:
 			c2Int, err := strconv.Atoi(cc2)
 			if err != nil {
-				panic(err)
+				return false, err
 			}
-			return c2Int%c1Int == 0
+			return c2Int%c1Int == 0, nil
 		}
+	}*/
+
+	//try to convert to int64
+	c1Int, err := toInt64(c1)
+	if err != nil {
+		return false, err
 	}
-	panic("unexpected type")
+	var c2Int int64
+	c2Int, err = toInt64(c2)
+	if err != nil {
+		return false, err
+	}
+
+	return c2Int%c1Int == 0, nil
+}
+
+// Imitating supsub
+var superscripts = map[rune]rune{
+	'0': '⁰',
+	'1': '¹',
+	'2': '²',
+	'3': '³',
+	'4': '⁴',
+	'5': '⁵',
+	'6': '⁶',
+	'7': '⁷',
+	'8': '⁸',
+	'9': '⁹',
+}
+
+//TODO: Use https://github.com/lynn9388/supsub ?
+//Copying supsub
+func toSuperscript(a interface{}) (string, error) {
+	i, err := toInt64(a)
+
+	if err != nil {
+		return "", err
+	}
+
+	s := strconv.FormatInt(i, 10)
+	var buf bytes.Buffer
+	for _, r := range s {
+		sup := superscripts[r]
+		buf.WriteRune(sup)
+	}
+	return buf.String(), nil
 }
