@@ -43,7 +43,7 @@ func helpers() template.FuncMap {
 		"iterate":    iterate,
 		"last":       last,
 		"list":       makeSlice,
-		"log": fmt.Println,
+		"log":        fmt.Println,
 		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
@@ -53,10 +53,10 @@ func helpers() template.FuncMap {
 		"printList":  printList,
 		"reverse":    reverse,
 		"sub":        sub,
-		"supScr":	toSuperscript,
+		"supScr":     toSuperscript,
 		"toInt64":    toInt64,
 		"toLower":    strings.ToLower,
-		"toTitle":	strings.Title,
+		"toTitle":    strings.Title,
 		"toUpper":    strings.ToUpper,
 		"words64":    printBigIntAsUint64Slice,
 	}
@@ -94,7 +94,7 @@ func toInt64(a interface{}) (int64, error) {
 	case int32:
 		return int64(i), nil
 	case uint64:
-		if i >> 63 != 0 {
+		if i>>63 != 0 {
 			return 0, fmt.Errorf("uint64 value too large, won't fit in an int64")
 		}
 		return int64(i), nil
@@ -247,14 +247,20 @@ func printList(input interface{}) (string, error) {
 	return builder.String(), nil
 }
 
-func iterate(maxBound interface{}) (r []int64, err error) {
+func iterate(start, end interface{}) (r []int64, err error) {
 
-	var maxBoundI int64
-
-	if maxBoundI, err = toInt64(maxBound); err != nil {
-		return
+	startI, err := toInt64(start)
+	if err != nil {
+		return nil, err
 	}
-	for i := int64(0); i < maxBoundI; i++ {
+	var endI int64
+	endI, err = toInt64(end)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := startI; i < endI; i++ {
 		r = append(r, i)
 	}
 	return
@@ -445,7 +451,7 @@ func toSuperscript(a interface{}) (string, error) {
 	i, err := toInt64(a)
 
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	s := strconv.FormatInt(i, 10)
