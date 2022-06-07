@@ -39,30 +39,87 @@ func helpers() template.FuncMap {
 		"div":        div,
 		"divides":    divides,
 		"first":      first,
+		"gt":		  gt,
 		"interval":   interval,
 		"iterate":    iterate,
+		"select":	_select,
 		"last":       last,
 		"list":       makeSlice,
 		"log":        fmt.Println,
+		"lt":		  lt,
 		"mod":        mod,
 		"mul":        mul,
 		"mul2":       mul2,
 		"noFirst":    noFirst,
 		"noLast":     noLast,
-		"notNil":     notNil,
-		"printList":  printList,
-		"reverse":    reverse,
-		"sub":        sub,
-		"supScr":     toSuperscript,
-		"toInt64":    toInt64,
-		"toLower":    strings.ToLower,
-		"toTitle":    strings.Title,
-		"toUpper":    strings.ToUpper,
-		"words64":    printBigIntAsUint64Slice,
+		"notNil":    notNil,
+		"pretty":    pretty,
+		"printList": printList,
+		"reverse":   reverse,
+		"sub":       sub,
+		"supScr":    toSuperscript,
+		"toInt64":   toInt64,
+		"toLower":   strings.ToLower,
+		"toTitle":   strings.Title,
+		"toUpper":   strings.ToUpper,
+		"words64":   bigIntToUint64SliceAsString,
 	}
 }
 
+func _select(condition bool, ifNot, ifSo interface{}) interface{} {
+	if condition {
+		return ifSo
+	}
+	return ifNot
+}
+
+func pretty(a interface{}) interface{} {
+	if res, err := printList(a); err == nil {
+		return res
+	}
+
+	if s, ok := a.(big.Int); ok {
+		return s.String()
+	}
+
+	return a
+}
+
+func cmp(a, b interface{}, expectedCmp int) (bool, error) {
+	aI, err := toBigInt(a)
+	if err != nil {
+		return false, err
+	}
+	var bI big.Int
+	bI, err = toBigInt(b)
+	if err != nil {
+		return false, err
+	}
+	return aI.Cmp(&bI) == expectedCmp, nil
+}
+
+func lt(a, b interface{}) (bool, error) {
+	return cmp(a, b, -1)
+}
+
+func gt(a, b interface{}) (bool, error) {
+	return cmp(a, b, +1)
+}
+
+func getBitsBig(a big.Int) ([]bool, error) {
+	l := a.BitLen()
+	res := make([]bool, l)
+	for i := 0; i < l; i ++ {
+		res[i] = a.Bit(i) == 1
+	}
+	return res, nil
+}
+
 func getBits(a interface{}) ([]bool, error) {
+
+	if aBI, ok := a.(big.Int); ok {
+		return getBitsBig(aBI)
+	}
 
 	var res []bool
 	aI, err := toInt64(a)
@@ -77,6 +134,22 @@ func getBits(a interface{}) ([]bool, error) {
 	}
 
 	return res, nil
+}
+
+func toBigInt(a interface{}) (big.Int, error) {
+	switch i := a.(type) {
+	case big.Int:
+		return i, nil
+	case *big.Int:
+		return *i, nil
+	/*case string:
+		var res big.Int
+		res.SetString(i, 0)
+		return res, nil*/
+	default:
+		n, err := toInt64(i)
+		return *big.NewInt(n), err
+	}
 }
 
 func toInt64(a interface{}) (int64, error) {
@@ -182,30 +255,15 @@ func last(input interface{}) (interface{}, error) {
 	return s.Index(s.Len() - 1).Interface(), nil
 }
 
-var stringBuilderPool = sync.Pool{New: func() interface{} { return &strings.Builder{} }}
+var StringBuilderPool = sync.Pool{New: func() interface{} { return &strings.Builder{} }}
 
-func printBigIntAsUint64Slice(in interface{}) (string, error) {
-
-	var input *big.Int
-
-	switch i := in.(type) {
-	case big.Int:
-		input = &i
-	case *big.Int:
-		input = i
-	default:
-		return "", fmt.Errorf("unsupported type %T", in)
-	}
-
+func WriteBigIntAsUint64Slice(builder *strings.Builder, input *big.Int) {
 	words := input.Bits()
 
 	if len(words) == 0 {
-		return "0", nil
+		builder.WriteString("0")
+		return
 	}
-
-	builder := stringBuilderPool.Get().(*strings.Builder)
-	builder.Reset()
-	defer stringBuilderPool.Put(builder)
 
 	for i := 0; i < len(words); i++ {
 		w := uint64(words[i])
@@ -221,6 +279,26 @@ func printBigIntAsUint64Slice(in interface{}) (string, error) {
 			builder.WriteString(", ")
 		}
 	}
+}
+
+func bigIntToUint64SliceAsString(in interface{}) (string, error) {
+
+	var input *big.Int
+
+	switch i := in.(type) {
+	case big.Int:
+		input = &i
+	case *big.Int:
+		input = i
+	default:
+		return "", fmt.Errorf("unsupported type %T", in)
+	}
+
+	builder := StringBuilderPool.Get().(*strings.Builder)
+	builder.Reset()
+	defer StringBuilderPool.Put(builder)
+
+	WriteBigIntAsUint64Slice(builder, input)
 
 	return builder.String(), nil
 }
@@ -233,15 +311,15 @@ func printList(input interface{}) (string, error) {
 		return "", err
 	}
 
-	builder := stringBuilderPool.Get().(*strings.Builder)
+	builder := StringBuilderPool.Get().(*strings.Builder)
 	builder.Reset()
-	defer stringBuilderPool.Put(builder)
+	defer StringBuilderPool.Put(builder)
 
-	builder.WriteString(fmt.Sprint(s.Index(0).Interface()))
+	builder.WriteString(fmt.Sprint(pretty(s.Index(0).Interface())))
 
 	for i := 1; i < s.Len(); i++ {
 		builder.WriteString(", ")
-		builder.WriteString(fmt.Sprint(s.Index(i).Interface()))
+		builder.WriteString(fmt.Sprint(pretty(s.Index(i).Interface())))
 	}
 
 	return builder.String(), nil
@@ -388,34 +466,6 @@ func dict(values ...interface{}) (map[string]interface{}, error) {
 
 // return true if c1 divides c2, that is, c2 % c1 == 0
 func divides(c1, c2 interface{}) (bool, error) {
-	/*switch cc1 := c1.(type) {
-	case int:
-		switch cc2 := c2.(type) {
-		case int:
-			return cc2%cc1 == 0, nil
-		case string:
-			c2Int, err := strconv.Atoi(cc2)
-			if err != nil {
-				return false, err
-			}
-			return c2Int%cc1 == 0, nil
-		}
-	case string:
-		c1Int, err := strconv.Atoi(cc1)
-		if err != nil {
-			panic(err)
-		}
-		switch cc2 := c2.(type) {
-		case int:
-			return cc2%c1Int == 0, nil
-		case string:
-			c2Int, err := strconv.Atoi(cc2)
-			if err != nil {
-				return false, err
-			}
-			return c2Int%c1Int == 0, nil
-		}
-	}*/
 
 	//try to convert to int64
 	c1Int, err := toInt64(c1)
