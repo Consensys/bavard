@@ -47,11 +47,11 @@ func helpers() template.FuncMap {
 		"list":       makeSlice,
 		"log":        fmt.Println,
 		"lt":		  lt,
-		"mod":        mod,
-		"mul":        mul,
-		"mul2":       mul2,
-		"noFirst":    noFirst,
-		"noLast":     noLast,
+		"mod":       mod,
+		"mul":       mul,
+		"mul2":      mul2,
+		"noFirst":   noFirst,
+		"noLast":    noLast,
 		"notNil":    notNil,
 		"pretty":    pretty,
 		"printList": printList,
@@ -168,13 +168,23 @@ func toInt64(a interface{}) (int64, error) {
 		return int64(i), nil
 	case uint64:
 		if i>>63 != 0 {
-			return 0, fmt.Errorf("uint64 value too large, won't fit in an int64")
+			return -1, fmt.Errorf("uint64 value won't fit in int64")
 		}
 		return int64(i), nil
 	case int64:
 		return i, nil
 	case int:
 		return int64(i), nil
+	case big.Int:
+		if !i.IsInt64() {
+			return -1, fmt.Errorf("big.Int value won't fit in int64")
+		}
+		return i.Int64(), nil
+	case *big.Int:
+		if !i.IsInt64() {
+			return -1, fmt.Errorf("big.Int value won't fit in int64")
+		}
+		return i.Int64(), nil
 	default:
 		return 0, fmt.Errorf("cannot convert to int64 from type %T", i)
 	}
@@ -495,6 +505,7 @@ var superscripts = map[rune]rune{
 	'9': '⁹',
 }
 
+// toSuperscript writes a number as a "power"
 //TODO: Use https://github.com/lynn9388/supsub ?
 //Copying supsub
 func toSuperscript(a interface{}) (string, error) {
