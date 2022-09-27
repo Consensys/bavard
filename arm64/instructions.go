@@ -14,18 +14,30 @@ func NewArm64(w io.Writer) *Arm64 {
 	return &Arm64{w: w}
 }
 
-func (arm64 *Arm64) LDP(address string, x,y interface{}, comment ...string) {
+func (arm64 *Arm64) CBZ(label string, comment ...string) {
+	arm64.writeOp(comment, "BLE", label)
+}
 
-	arm64.writeOp(comment, "LDP", address, toTuple(x,y))
+func (arm64 *Arm64) LDP(address string, x, y interface{}, comment ...string) {
+	arm64.writeOp(comment, "LDP", address, toTuple(x, y))
+}
+
+func (arm64 *Arm64) LDPP(offset int, src, x, y interface{}, comment ...string) {
+	src = fmt.Sprintf("%d(%s)", offset, Operand(src))
+	arm64.writeOp(comment, "LDP.P", src, toTuple(x, y))
 }
 
 func (arm64 *Arm64) STP(x, y interface{}, address string, comment ...string) {
-	arm64.writeOp(comment, "STP", address, toTuple(x,y))
+	arm64.writeOp(comment, "STP", toTuple(x, y), address)
 	//arm64.WriteLn(fmt.Sprintf("STP (R%d, R%d), %s", uint64(x), uint64(y), address))
 }
 
 func (arm64 *Arm64) ADDS(op1, op2, dst interface{}, comment ...string) {
 	arm64.writeOp(comment, "ADDS", op1, op2, dst)
+}
+
+func (arm64 *Arm64) ADD(op1, op2, dst interface{}, comment ...string) {
+	arm64.writeOp(comment, "ADD", op1, op2, dst)
 }
 
 func (arm64 *Arm64) ADCS(op1, op2, dst interface{}, comment ...string) {
@@ -52,6 +64,11 @@ func (arm64 *Arm64) MOVD(src, dst interface{}, comment ...string) {
 	arm64.writeOp(comment, "MOVD", src, dst)
 }
 
+func (arm64 *Arm64) MOVDP(offset int, src, dst interface{}, comment ...string) {
+	src = fmt.Sprintf("%d(%s)", offset, Operand(src))
+	arm64.writeOp(comment, "MOVD.P", src, dst)
+}
+
 func (arm64 *Arm64) MUL(op1, op2, dst interface{}, comment ...string) {
 	arm64.writeOp(comment, "MUL", op1, op2, dst)
 }
@@ -73,7 +90,7 @@ func (arm64 *Arm64) CMP(a, b interface{}, comment ...string) {
 }
 
 func (arm64 *Arm64) RegisterOffset(r Register, offset int) string {
-	return fmt.Sprintf("%d(R%d)", offset, r)
+	return fmt.Sprintf("%d(%s)", offset, r)
 }
 
 func (arm64 *Arm64) GlobalOffset(name string, offset int) string {
@@ -118,7 +135,9 @@ func (arm64 *Arm64) FnHeader(funcName string, stackSize, argSize int, reserved .
 
 	arm64.WriteLn(fmt.Sprintf(header, funcName, stackSize, argSize))
 	r := NewRegisters()
-	r.Remove(reserved...)
+	for _, rr := range reserved {
+		r.Remove(rr)
+	}
 	return r
 }
 
@@ -127,7 +146,7 @@ func Operand(i interface{}) string {
 	case string:
 		return t
 	case Register:
-		return t.Name()
+		return string(t)
 	case int:
 		switch t {
 		case 0:
