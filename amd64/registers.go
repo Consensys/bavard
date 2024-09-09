@@ -135,7 +135,10 @@ func init() {
 	}
 }
 
-func (amd64 *Amd64) NewLabel() Label {
+func (amd64 *Amd64) NewLabel(prefix ...string) Label {
 	amd64.labelCounter++
+	if len(prefix) > 0 {
+		return Label(fmt.Sprintf("%s_%d", prefix[0], amd64.labelCounter))
+	}
 	return Label(fmt.Sprintf("l%d", amd64.labelCounter))
 }
