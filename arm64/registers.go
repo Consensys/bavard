@@ -154,7 +154,10 @@ func init() {
 	}
 }
 
-func (arm64 *Arm64) NewLabel() Label {
+func (arm64 *Arm64) NewLabel(prefix ...string) Label {
 	arm64.labelCounter++
+	if len(prefix) > 0 {
+		return Label(fmt.Sprintf("%s%d", prefix[0], arm64.labelCounter))
+	}
 	return Label(fmt.Sprintf("l%d", arm64.labelCounter))
 }
