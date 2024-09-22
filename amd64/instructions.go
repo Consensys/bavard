@@ -34,6 +34,58 @@ func (amd64 *Amd64) RET() {
 	amd64.WriteLn("    RET")
 }
 
+// AVX 512 instructions
+
+// KMOVW Move 16-bit Mask
+func (amd64 *Amd64) KMOVW(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KMOVW", r1, r2)
+}
+
+// VXORPS Bitwise Logical XOR
+func (amd64 *Amd64) VXORPS(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VXORPS", r1, r2, r3)
+}
+
+// VMOVDQA64 Move Aligned Quadword Values
+func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQA64", r1, r2)
+}
+
+// VPMOVZXDQ Move Packed Doubleword Integers to Quadword Integers
+func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMOVZXDQ", r1, r2)
+}
+
+// VPADDQ Add Packed Quadword Integers
+func (amd64 *Amd64) VPADDQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPADDQ", r1, r2, r3)
+}
+
+// VPSRLQ Shift Packed Quadword Data Right Logical
+func (amd64 *Amd64) VPSRLQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRLQ", r1, r2, r3)
+}
+
+// VPEXTRQ Extract Quadword
+func (amd64 *Amd64) VPEXTRQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPEXTRQ", r1, r2, r3)
+}
+
+// VALIGND Align Doubleword Vectors
+func (amd64 *Amd64) VALIGND(r1, r2, r3, k, r4 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGND", r1, r2, r3, k, r4)
+}
+
+// VALIGNQ Align Quadword Vectors
+func (amd64 *Amd64) VALIGNQ(r1, r2, r3, r4 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGNQ", r1, r2, r3, r4)
+}
+
+// VMOVQ Move Quadword
+func (amd64 *Amd64) VMOVQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVQ", r1, r2)
+}
+
 func (amd64 *Amd64) MULXQ(src, lo, hi interface{}, comment ...string) {
 	amd64.writeOp(comment, "MULXQ", src, lo, hi)
 }
@@ -98,6 +150,10 @@ func (amd64 *Amd64) MOVNTIQ(r1, r2 interface{}, comment ...string) {
 
 func (amd64 *Amd64) SHRQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "SHRQ", r1, r2)
+}
+
+func (amd64 *Amd64) SHLQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SHLQ", r1, r2)
 }
 
 func (amd64 *Amd64) SHRQw(r1, r2, r3 interface{}, comment ...string) {
