@@ -41,9 +41,29 @@ func (amd64 *Amd64) KMOVW(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "KMOVW", r1, r2)
 }
 
+// KMOVD Move 32-bit Mask
+func (amd64 *Amd64) KMOVD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KMOVD", r1, r2)
+}
+
+// KSHIFTLW Shift 16-bit Mask Left
+func (amd64 *Amd64) KSHIFTLW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTLW", r1, r2, r3)
+}
+
+// KADDW Add 16-bit Masks
+func (amd64 *Amd64) KADDW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KADDW", r1, r2, r3)
+}
+
 // VXORPS Bitwise Logical XOR
 func (amd64 *Amd64) VXORPS(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VXORPS", r1, r2, r3)
+}
+
+// VPXORQ Bitwise Logical Exclusive OR of Packed Quadword Integers
+func (amd64 *Amd64) VPXORQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPXORQ", r1, r2, r3)
 }
 
 // VMOVDQA64 Move Aligned Quadword Values
@@ -56,9 +76,24 @@ func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMOVZXDQ", r1, r2)
 }
 
+// VMOVDQU64 Move Unaligned Quadword Values
+func (amd64 *Amd64) VMOVDQU64(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
+}
+
 // VPADDQ Add Packed Quadword Integers
 func (amd64 *Amd64) VPADDQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPADDQ", r1, r2, r3)
+}
+
+// VPMULUDQ Multiply Packed Unsigned Doubleword Integers
+func (amd64 *Amd64) VPMULUDQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULUDQ", r1, r2, r3)
+}
+
+// VPANDQ Bitwise Logical AND of Packed Quadword Integers
+func (amd64 *Amd64) VPANDQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPANDQ", r1, r2, r3)
 }
 
 // VPSRLQ Shift Packed Quadword Data Right Logical
@@ -84,6 +119,16 @@ func (amd64 *Amd64) VALIGNQ(r1, r2, r3, r4 interface{}, comment ...string) {
 // VMOVQ Move Quadword
 func (amd64 *Amd64) VMOVQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVQ", r1, r2)
+}
+
+// VMOVD Move Doubleword
+func (amd64 *Amd64) VMOVD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVD", r1, r2)
+}
+
+// VPCMPEQB Compare Packed Byte Data for Equality
+func (amd64 *Amd64) VPCMPEQB(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCMPEQB", r1, r2, r3)
 }
 
 func (amd64 *Amd64) MULXQ(src, lo, hi interface{}, comment ...string) {
