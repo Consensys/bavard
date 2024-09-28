@@ -24,10 +24,22 @@ import (
 type Amd64 struct {
 	w            io.Writer
 	labelCounter int
+	defineMode   bool
 }
 
 func NewAmd64(w io.Writer) *Amd64 {
 	return &Amd64{w: w}
+}
+
+func (amd64 *Amd64) StartDefine() {
+	if amd64.defineMode {
+		panic("Define cannot be nested")
+	}
+	amd64.defineMode = true
+}
+
+func (amd64 *Amd64) EndDefine() {
+	amd64.defineMode = false
 }
 
 func (amd64 *Amd64) RET() {
@@ -71,6 +83,11 @@ func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64", r1, r2)
 }
 
+// VMOVDQA64_Z Move Aligned Quadword Values  (Zeroing Masking).
+func (amd64 *Amd64) VMOVDQA64_Z(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQA64.Z", r1, k, r2)
+}
+
 // VPMOVZXDQ Move Packed Doubleword Integers to Quadword Integers
 func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMOVZXDQ", r1, r2)
@@ -91,6 +108,11 @@ func (amd64 *Amd64) VPMULUDQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMULUDQ", r1, r2, r3)
 }
 
+// VPMULUDQ_BCST Multiply Packed Unsigned Doubleword Integers (Broadcast).
+func (amd64 *Amd64) VPMULUDQ_BCST(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULUDQ.BCST", r1, r2, r3)
+}
+
 // VPANDQ Bitwise Logical AND of Packed Quadword Integers
 func (amd64 *Amd64) VPANDQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPANDQ", r1, r2, r3)
@@ -109,6 +131,11 @@ func (amd64 *Amd64) VPEXTRQ(r1, r2, r3 interface{}, comment ...string) {
 // VALIGND Align Doubleword Vectors
 func (amd64 *Amd64) VALIGND(r1, r2, r3, k, r4 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VALIGND", r1, r2, r3, k, r4)
+}
+
+// VALIGND_Z Align Doubleword Vectors (Zeroing Masking).
+func (amd64 *Amd64) VALIGND_Z(r1, r2, r3, k, r4 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGND.Z", r1, r2, r3, k, r4)
 }
 
 // VALIGNQ Align Quadword Vectors
@@ -203,6 +230,10 @@ func (amd64 *Amd64) SHLQ(r1, r2 interface{}, comment ...string) {
 
 func (amd64 *Amd64) SHRQw(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "SHRQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) SHRDw(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SHRD", r1, r2, r3)
 }
 
 func (amd64 *Amd64) SHRXQ(r1, r2, r3 interface{}, comment ...string) {
@@ -326,6 +357,11 @@ func (amd64 *Amd64) WriteLn(s string) {
 }
 
 func (amd64 *Amd64) write(s string) {
+	// in define mode, if the last character is a newline, we insert a "\" before it
+	if amd64.defineMode && len(s) > 0 && s[len(s)-1] == '\n' {
+		amd64.w.Write([]byte(s[:len(s)-1] + "\\\n"))
+		return
+	}
 	amd64.w.Write([]byte(s))
 }
 
