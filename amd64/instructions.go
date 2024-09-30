@@ -123,6 +123,11 @@ func (amd64 *Amd64) VPERMT2Q(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPERMT2Q", r1, r2, r3)
 }
 
+// VPMOVQ2M: Move Signs of Packed Quadword Integers to Mask Register
+func (amd64 *Amd64) VPMOVQ2M(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMOVQ2M", r1, r2)
+}
+
 // VMOVDQA64 Move Aligned Quadword Values
 func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64", r1, r2)
