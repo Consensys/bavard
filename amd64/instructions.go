@@ -150,7 +150,7 @@ func (amd64 *Amd64) VMOVDQU64(r1, r2 interface{}, comment ...string) {
 
 // VMOVDQU64 Move Unaligned Quadword Values
 func (amd64 *Amd64) VMOVDQU64k(r1, k, r2 interface{}, comment ...string) {
-	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
+	amd64.writeOp(comment, "VMOVDQU64", r1, k, r2)
 }
 
 // VPADDQ Add Packed Quadword Integers
