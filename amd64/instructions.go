@@ -48,6 +48,26 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VSHUFI64X2: Shuffle 128-Bit Packed Quadword Integer Values
+func (amd64 *Amd64) VSHUFI64X2(r1, r2, r3, r4 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VSHUFI64X2", r1, r2, r3, r4)
+}
+
+// VPERMQ: Permute Quadword Integers
+func (amd64 *Amd64) VPERMQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMQ", r1, r2, r3)
+}
+
+// VPERMD: Permute Doubleword Integers
+func (amd64 *Amd64) VPERMD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMD", r1, r2, r3)
+}
+
+// VPERMD_BCST_Z: Permute Doubleword Integers (Broadcast, Zeroing Masking)
+func (amd64 *Amd64) VPERMD_BCST_Z(r1, r2, k, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMD.BCST.Z", r1, r2, k, r3)
+}
+
 // KMOVW Move 16-bit Mask
 func (amd64 *Amd64) KMOVW(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "KMOVW", r1, r2)
