@@ -48,6 +48,21 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VPSLLQ: Shift Packed Quadword Data Left Logical
+func (amd64 *Amd64) VPSLLQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLQ", r1, r2, r3)
+}
+
+// VPSUBQ: Subtract Packed Quadword Integers
+func (amd64 *Amd64) VPSUBQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSUBQ", r1, r2, r3)
+}
+
+// KNOTB: NOT 8-bit Mask Register
+func (amd64 *Amd64) KNOTB(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KNOTB", r1, r2)
+}
+
 // VSHUFI64X2: Shuffle 128-Bit Packed Quadword Integer Values
 func (amd64 *Amd64) VSHUFI64X2(r1, r2, r3, r4 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VSHUFI64X2", r1, r2, r3, r4)
@@ -98,6 +113,16 @@ func (amd64 *Amd64) VPXORQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPXORQ", r1, r2, r3)
 }
 
+// VPORQ: Bitwise Logical OR of Packed Quadword Integers
+func (amd64 *Amd64) VPORQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPORQ", r1, r2, r3)
+}
+
+// VPERMT2Q: Full Permute of Quadwords From Two Tables Overwriting a Table
+func (amd64 *Amd64) VPERMT2Q(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMT2Q", r1, r2, r3)
+}
+
 // VMOVDQA64 Move Aligned Quadword Values
 func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64", r1, r2)
@@ -115,6 +140,11 @@ func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
 
 // VMOVDQU64 Move Unaligned Quadword Values
 func (amd64 *Amd64) VMOVDQU64(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
+}
+
+// VMOVDQU64 Move Unaligned Quadword Values
+func (amd64 *Amd64) VMOVDQU64k(r1, k, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
 }
 
