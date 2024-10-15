@@ -7,11 +7,23 @@ import (
 
 type Arm64 struct {
 	w            io.Writer
-	labelCounter int // TODO: What's this?
+	labelCounter int
+	defineMode   bool
 }
 
 func NewArm64(w io.Writer) *Arm64 {
 	return &Arm64{w: w}
+}
+
+func (arm64 *Arm64) StartDefine() {
+	if arm64.defineMode {
+		panic("Define cannot be nested")
+	}
+	arm64.defineMode = true
+}
+
+func (arm64 *Arm64) EndDefine() {
+	arm64.defineMode = false
 }
 
 func (arm64 *Arm64) CBZ(label string, comment ...string) {
@@ -89,14 +101,6 @@ func (arm64 *Arm64) CMP(a, b interface{}, comment ...string) {
 	arm64.writeOp(comment, "CMP", a, b)
 }
 
-func (arm64 *Arm64) RegisterOffset(r Register, offset int) string {
-	return fmt.Sprintf("%d(%s)", offset, r)
-}
-
-func (arm64 *Arm64) GlobalOffset(name string, offset int) string {
-	return fmt.Sprintf("%s<>+%d(SB)", name, offset)
-}
-
 func toTuple(x, y interface{}) string {
 	return fmt.Sprintf("(%s, %s)", Operand(x), Operand(y))
 }
@@ -114,10 +118,15 @@ func (arm64 *Arm64) RET() {
 }
 
 func (arm64 *Arm64) WriteLn(s string) {
-	arm64.Write(s + "\n")
+	arm64.write(s + "\n")
 }
 
-func (arm64 *Arm64) Write(s string) {
+func (arm64 *Arm64) write(s string) {
+	// in define mode, if the last character is a newline, we insert a "\" before it
+	if arm64.defineMode && len(s) > 0 && s[len(s)-1] == '\n' {
+		arm64.w.Write([]byte(s[:len(s)-1] + "\\\n"))
+		return
+	}
 	arm64.w.Write([]byte(s))
 }
 
@@ -170,20 +179,20 @@ func Operand(i interface{}) string {
 }
 
 func (arm64 *Arm64) writeOp(comments []string, instruction string, r0 interface{}, r ...interface{}) {
-	arm64.Write(fmt.Sprintf("    %s %s", instruction, Operand(r0)))
+	arm64.write(fmt.Sprintf("    %s %s", instruction, Operand(r0)))
 	l := len(Operand(r0))
 	for _, rn := range r {
-		arm64.Write(fmt.Sprintf(", %s", Operand(rn)))
+		arm64.write(fmt.Sprintf(", %s", Operand(rn)))
 		l += 2 + len(Operand(rn))
 	}
 	if len(comments) == 1 {
 		l = 50 - l
 		for i := 0; i < l; i++ {
-			arm64.Write(" ")
+			arm64.write(" ")
 		}
-		arm64.Write("// " + comments[0])
+		arm64.write("// " + comments[0])
 	}
-	arm64.Write("\n")
+	arm64.write("\n")
 }
 
 // </ copy paste>
