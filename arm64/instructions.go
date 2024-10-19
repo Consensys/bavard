@@ -137,7 +137,7 @@ func (arm64 *Arm64) Comment(s string) {
 func (arm64 *Arm64) FnHeader(funcName string, stackSize, argSize int, reserved ...Register) Registers {
 	var header string
 	if stackSize == 0 {
-		header = "TEXT ·%s(SB), NOSPLIT, $%d-%d"
+		header = "TEXT ·%s(SB), NOFRAME|NOSPLIT, $%d-%d"
 	} else {
 		header = "TEXT ·%s(SB), $%d-%d"
 	}
