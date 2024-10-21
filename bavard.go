@@ -148,7 +148,7 @@ func (b *Bavard) config(buf *bytes.Buffer, output string, options ...func(*Bavar
 	}
 
 	if b.buildTag != "" {
-		if _, err := buf.WriteString("// +build " + b.buildTag + "\n"); err != nil {
+		if _, err := buf.WriteString("//go:build  " + b.buildTag + "\n"); err != nil {
 			return err
 		}
 	}
@@ -308,7 +308,7 @@ func Funcs(funcs template.FuncMap) func(*Bavard) error {
 
 // Generate an entry with generator default config
 func (b *BatchGenerator) Generate(data interface{}, packageName string, baseTmplDir string, entries ...Entry) error {
-	return b.GenerateWithOptions(data, packageName, baseTmplDir, make([]func(*Bavard)error,0), entries...)
+	return b.GenerateWithOptions(data, packageName, baseTmplDir, make([]func(*Bavard) error, 0), entries...)
 }
 
 // GenerateWithOptions allows adding extra configuration (helper functions etc.) to a batch generation
@@ -320,7 +320,7 @@ func (b *BatchGenerator) GenerateWithOptions(data interface{}, packageName strin
 		wg.Add(1)
 		go func(entry Entry) {
 			defer wg.Done()
-			opts := make([]func(*Bavard) error, len(b.defaultOpts) + len(extraOptions))
+			opts := make([]func(*Bavard) error, len(b.defaultOpts)+len(extraOptions))
 			copy(opts, b.defaultOpts)
 			copy(opts[len(b.defaultOpts):], extraOptions)
 			if entry.BuildTag != "" {
