@@ -106,7 +106,7 @@ func NewRegisters() Registers {
 }
 
 // NbRegisters contains nb default available registers, without BP
-const NbRegisters = 26
+const NbRegisters = 27
 
 var registers = []Register{
 	R0,
