@@ -33,9 +33,7 @@ const (
 	R24 = Register("R24")
 	R25 = Register("R25")
 	R26 = Register("R26")
-	R27 = Register("R27")
 	R29 = Register("R29")
-	R30 = Register("R30")
 )
 
 // type Label string
@@ -108,7 +106,7 @@ func NewRegisters() Registers {
 }
 
 // NbRegisters contains nb default available registers, without BP
-const NbRegisters = 28
+const NbRegisters = 26
 
 var registers = []Register{
 	R0,
@@ -137,9 +135,7 @@ var registers = []Register{
 	R24,
 	R25,
 	R26,
-	R27,
-	R29,
-	// R30,
+	R29, // risky. (reserved for FP)
 }
 
 var registerSet map[Register]struct{}
