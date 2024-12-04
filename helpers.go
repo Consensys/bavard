@@ -31,38 +31,39 @@ import (
 func helpers() template.FuncMap {
 	// functions used in template
 	return template.FuncMap{
-		"add":        add,
-		"bits":       getBits,
-		"bytes":      intBytes, //TODO: Do this directly
-		"capitalize": strings.Title,
-		"dict":       dict,
-		"div":        div,
-		"divides":    divides,
-		"first":      first,
-		"gt":		  gt,
-		"interval":   interval,
-		"iterate":    iterate,
-		"select":	_select,
-		"last":       last,
-		"list":       makeSlice,
-		"log":        fmt.Println,
-		"lt":		  lt,
-		"mod":       mod,
-		"mul":       mul,
-		"mul2":      mul2,
-		"noFirst":   noFirst,
-		"noLast":    noLast,
-		"notNil":    notNil,
-		"pretty":    pretty,
-		"printList": printList,
-		"reverse":   reverse,
-		"sub":       sub,
-		"supScr":    toSuperscript,
-		"toInt64":   toInt64,
-		"toLower":   strings.ToLower,
-		"toTitle":   strings.Title,
-		"toUpper":   strings.ToUpper,
-		"words64":   bigIntToUint64SliceAsString,
+		"add":          add,
+		"bits":         getBits,
+		"bytes":        intBytes, //TODO: Do this directly
+		"capitalize":   strings.Title,
+		"dict":         dict,
+		"div":          div,
+		"divides":      divides,
+		"first":        first,
+		"gt":           gt,
+		"interval":     interval,
+		"iterate":      iterate,
+		"select":       _select,
+		"last":         last,
+		"list":         makeSlice,
+		"log":          fmt.Println,
+		"lt":           lt,
+		"mod":          mod,
+		"mul":          mul,
+		"mul2":         mul2,
+		"noFirst":      noFirst,
+		"noLast":       noLast,
+		"notNil":       notNil,
+		"pretty":       pretty,
+		"printList":    printList,
+		"reverse":      reverse,
+		"sub":          sub,
+		"supScr":       toSuperscript,
+		"toInt64":      toInt64,
+		"toLower":      strings.ToLower,
+		"toTitle":      strings.Title,
+		"toUpper":      strings.ToUpper,
+		"words64":      bigIntToUint64SliceAsString,
+		"underscorize": underscorize,
 	}
 }
 
@@ -522,4 +523,8 @@ func toSuperscript(a interface{}) (string, error) {
 		buf.WriteRune(sup)
 	}
 	return buf.String(), nil
+}
+
+func underscorize(s string) string {
+	return strings.ReplaceAll(s, "-", "_")
 }
