@@ -143,6 +143,11 @@ func (amd64 *Amd64) VPMOVQ2M(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMOVQ2M", r1, r2)
 }
 
+// VMOVDQA32: Move Aligned Doubleword Values
+func (amd64 *Amd64) VMOVDQA32(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQA32", r1, r2)
+}
+
 // VMOVDQA64 Move Aligned Quadword Values
 func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64", r1, r2)
@@ -156,6 +161,11 @@ func (amd64 *Amd64) VMOVDQA64_Z(r1, k, r2 interface{}, comment ...string) {
 // VPMOVZXDQ Move Packed Doubleword Integers to Quadword Integers
 func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMOVZXDQ", r1, r2)
+}
+
+// VMOVDQU32: Move Unaligned Doubleword Values
+func (amd64 *Amd64) VMOVDQU32(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQU32", r1, r2)
 }
 
 // VMOVDQU64 Move Unaligned Quadword Values
