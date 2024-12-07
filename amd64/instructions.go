@@ -48,6 +48,21 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VPADDD: Add Packed Doubleword Integers
+func (amd64 *Amd64) VPADDD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPADDD", r1, r2, r3)
+}
+
+// VPSUBD: Subtract Packed Doubleword Integers
+func (amd64 *Amd64) VPSUBD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSUBD", r1, r2, r3)
+}
+
+// VPMINUD: Minimum of Packed Unsigned Doubleword Integers
+func (amd64 *Amd64) VPMINUD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMINUD", r1, r2, r3)
+}
+
 // VPSLLQ: Shift Packed Quadword Data Left Logical
 func (amd64 *Amd64) VPSLLQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSLLQ", r1, r2, r3)
