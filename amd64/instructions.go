@@ -48,6 +48,26 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VPMULLD: Multiply Packed Signed Doubleword Integers and Store Low Result.
+func (amd64 *Amd64) VPMULLD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULLD", r1, r2, r3)
+}
+
+// VPMULLD_BCST: Multiply Packed Signed Doubleword Integers and Store Low Result (Broadcast).
+func (amd64 *Amd64) VPMULLD_BCST(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULLD.BCST", r1, r2, r3)
+}
+
+// VPMULLQ: Multiply Packed Signed Quadword Integers and Store Low Result.
+func (amd64 *Amd64) VPMULLQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULLQ", r1, r2, r3)
+}
+
+// VPMULLQ_BCST: Multiply Packed Signed Quadword Integers and Store Low Result (Broadcast).
+func (amd64 *Amd64) VPMULLQ_BCST(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULLQ.BCST", r1, r2, r3)
+}
+
 // VMOVSHDUP: Move Packed Single-FP High and Duplicate
 func (amd64 *Amd64) VMOVSHDUP(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVSHDUP", r1, r2)
@@ -171,6 +191,11 @@ func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 // VMOVDQA64_Z Move Aligned Quadword Values  (Zeroing Masking).
 func (amd64 *Amd64) VMOVDQA64_Z(r1, k, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64.Z", r1, k, r2)
+}
+
+// VPMOVQD: Down Convert Packed Quadword Values to Doubleword Values with Truncation.
+func (amd64 *Amd64) VPMOVQD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMOVQD", r1, r2)
 }
 
 // VPMOVZXDQ Move Packed Doubleword Integers to Quadword Integers
