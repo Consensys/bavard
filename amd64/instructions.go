@@ -53,6 +53,11 @@ func (amd64 *Amd64) VMOVSHDUP(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVSHDUP", r1, r2)
 }
 
+// VPBROADCASTQ: Broadcast Quadword Integer
+func (amd64 *Amd64) VPBROADCASTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPBROADCASTQ", r1, r2)
+}
+
 // VPBROADCASTD: Broadcast Doubleword Integer
 func (amd64 *Amd64) VPBROADCASTD(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPBROADCASTD", r1, r2)
