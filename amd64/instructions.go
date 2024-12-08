@@ -48,6 +48,11 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VMOVSHDUP: Move Packed Single-FP High and Duplicate
+func (amd64 *Amd64) VMOVSHDUP(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVSHDUP", r1, r2)
+}
+
 // VPBROADCASTD: Broadcast Doubleword Integer
 func (amd64 *Amd64) VPBROADCASTD(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPBROADCASTD", r1, r2)
