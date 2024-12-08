@@ -48,6 +48,11 @@ func (amd64 *Amd64) RET() {
 
 // AVX 512 instructions
 
+// VPBROADCASTD: Broadcast Doubleword Integer
+func (amd64 *Amd64) VPBROADCASTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPBROADCASTD", r1, r2)
+}
+
 // VPADDD: Add Packed Doubleword Integers
 func (amd64 *Amd64) VPADDD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPADDD", r1, r2, r3)
