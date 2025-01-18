@@ -64,7 +64,7 @@ type Entry struct {
 	BuildTag  string
 }
 
-func shouldGenerate(output string) bool {
+func ShouldGenerate(output string) bool {
 	envFilter := os.Getenv(EnvFilter)
 	if envFilter == "" {
 		return true
@@ -76,7 +76,7 @@ func shouldGenerate(output string) bool {
 // GenerateFromString will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromString(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
-	if !shouldGenerate(output) {
+	if !ShouldGenerate(output) {
 		return nil // skip generation
 	}
 	var b Bavard
@@ -109,7 +109,7 @@ func GenerateFromString(output string, templates []string, data interface{}, opt
 // GenerateFromFiles will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromFiles(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
-	if !shouldGenerate(output) {
+	if !ShouldGenerate(output) {
 		return nil // skip generation
 	}
 	var b Bavard
