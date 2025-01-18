@@ -22,6 +22,10 @@ import (
 	"rsc.io/tmplfunc"
 )
 
+const (
+	envVar = "BAVARD" // environment variable to filter generation
+)
+
 // Bavard root object to configure the code generation from text/template
 type Bavard struct {
 	verbose     bool
@@ -60,9 +64,22 @@ type Entry struct {
 	BuildTag  string
 }
 
+func shouldGenerate(output string) bool {
+	envFilter := os.Getenv(envVar)
+	if envFilter == "" {
+		return true
+	}
+
+	return strings.Contains(output, envFilter)
+}
+
 // GenerateFromString will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromString(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
+	if !shouldGenerate(output) {
+		fmt.Printf("skipping generation of %s\n", output)
+		return nil // skip generation
+	}
 	var b Bavard
 
 	var buf bytes.Buffer
@@ -93,6 +110,10 @@ func GenerateFromString(output string, templates []string, data interface{}, opt
 // GenerateFromFiles will concatenate templates and create output file from executing the resulting text/template
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromFiles(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
+	if !shouldGenerate(output) {
+		fmt.Printf("skipping generation of %s\n", output)
+		return nil // skip generation
+	}
 	var b Bavard
 	var buf bytes.Buffer
 
