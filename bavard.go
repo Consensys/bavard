@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	envVar = "BAVARD" // environment variable to filter generation
+	EnvFilter = "BAVARD" // environment variable to filter generation
 )
 
 // Bavard root object to configure the code generation from text/template
@@ -65,7 +65,7 @@ type Entry struct {
 }
 
 func shouldGenerate(output string) bool {
-	envFilter := os.Getenv(envVar)
+	envFilter := os.Getenv(EnvFilter)
 	if envFilter == "" {
 		return true
 	}
@@ -77,7 +77,6 @@ func shouldGenerate(output string) bool {
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromString(output string, templates []string, data interface{}, options ...func(*Bavard) error) error {
 	if !shouldGenerate(output) {
-		fmt.Printf("skipping generation of %s\n", output)
 		return nil // skip generation
 	}
 	var b Bavard
@@ -111,7 +110,6 @@ func GenerateFromString(output string, templates []string, data interface{}, opt
 // see other package functions to add options (package name, licensing, build tags, ...)
 func GenerateFromFiles(output string, templateF []string, data interface{}, options ...func(*Bavard) error) error {
 	if !shouldGenerate(output) {
-		fmt.Printf("skipping generation of %s\n", output)
 		return nil // skip generation
 	}
 	var b Bavard
