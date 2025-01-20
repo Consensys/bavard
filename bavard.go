@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	EnvFilter = "BAVARD" // environment variable to filter generation
+	EnvFilter = "BAVARD_FILTER" // environment variable to filter generation
 )
 
 // Bavard root object to configure the code generation from text/template
