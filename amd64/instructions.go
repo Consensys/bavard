@@ -36,6 +36,7 @@ func (amd64 *Amd64) RET() {
 }
 
 // AVX 512 instructions
+// some of the documentation (in particular for AVX512 ops) is taken from https://github.com/mmcloughlin/avo
 
 // VPMULLD: Multiply Packed Signed Doubleword Integers and Store Low Result.
 func (amd64 *Amd64) VPMULLD(r1, r2, r3 interface{}, comment ...string) {
@@ -87,6 +88,11 @@ func (amd64 *Amd64) VPMINUD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMINUD", r1, r2, r3)
 }
 
+// VPMINUQ: Minimum of Packed Unsigned Quadword Integers
+func (amd64 *Amd64) VPMINUQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMINUQ", r1, r2, r3)
+}
+
 // VPSLLQ: Shift Packed Quadword Data Left Logical
 func (amd64 *Amd64) VPSLLQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSLLQ", r1, r2, r3)
@@ -112,6 +118,95 @@ func (amd64 *Amd64) VPERMQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPERMQ", r1, r2, r3)
 }
 
+// VEXTRACTI32X8: Extract 256 Bits of Packed Doubleword Integer Values.
+//
+// Forms:
+//
+//	VEXTRACTI32X8 imm8 zmm k m256
+//	VEXTRACTI32X8 imm8 zmm k ymm
+//	VEXTRACTI32X8 imm8 zmm m256
+//	VEXTRACTI32X8 imm8 zmm ymm
+func (amd64 *Amd64) VEXTRACTI32X8(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VEXTRACTI32X8", imm8, r1, r2)
+}
+
+// VPBLENDMQ: Blend Quadword Vectors Using an OpMask Control.
+//
+// Forms:
+//
+//	VPBLENDMQ m128 xmm k xmm
+//	VPBLENDMQ m128 xmm xmm
+//	VPBLENDMQ m256 ymm k ymm
+//	VPBLENDMQ m256 ymm ymm
+//	VPBLENDMQ xmm  xmm k xmm
+//	VPBLENDMQ xmm  xmm xmm
+//	VPBLENDMQ ymm  ymm k ymm
+//	VPBLENDMQ ymm  ymm ymm
+//	VPBLENDMQ m512 zmm k zmm
+//	VPBLENDMQ m512 zmm zmm
+//	VPBLENDMQ zmm  zmm k zmm
+//	VPBLENDMQ zmm  zmm zmm
+func (amd64 *Amd64) VPBLENDMQ(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPBLENDMQ", r1, r2, k, r3)
+}
+
+// VEXTRACTI64X4: Extract 256 Bits of Packed Quadword Integer Values.
+//
+// Forms:
+//
+//	VEXTRACTI64X4 imm8 zmm k m256
+//	VEXTRACTI64X4 imm8 zmm k ymm
+//	VEXTRACTI64X4 imm8 zmm m256
+//	VEXTRACTI64X4 imm8 zmm ymm
+func (amd64 *Amd64) VEXTRACTI64X4(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VEXTRACTI64X4", imm8, r1, r2)
+}
+
+// VPSHRDQ: Concatenate Quadwords and Shift Packed Data Right Logical.
+//
+// Forms:
+//
+//	VPSHRDQ imm8 m128 xmm k xmm
+//	VPSHRDQ imm8 m128 xmm xmm
+//	VPSHRDQ imm8 m256 ymm k ymm
+//	VPSHRDQ imm8 m256 ymm ymm
+//	VPSHRDQ imm8 xmm  xmm k xmm
+//	VPSHRDQ imm8 xmm  xmm xmm
+//	VPSHRDQ imm8 ymm  ymm k ymm
+//	VPSHRDQ imm8 ymm  ymm ymm
+//	VPSHRDQ imm8 m512 zmm k zmm
+//	VPSHRDQ imm8 m512 zmm zmm
+//	VPSHRDQ imm8 zmm  zmm k zmm
+//	VPSHRDQ imm8 zmm  zmm zmm
+func (amd64 *Amd64) VPSHRDQ(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHRDQ", imm8, r1, r2, r3)
+}
+
+// VPBLENDMD: Blend Doubleword Vectors Using an OpMask Control.
+//
+// Forms:
+//
+//	VPBLENDMD m128 xmm k xmm
+//	VPBLENDMD m128 xmm xmm
+//	VPBLENDMD m256 ymm k ymm
+//	VPBLENDMD m256 ymm ymm
+//	VPBLENDMD xmm  xmm k xmm
+//	VPBLENDMD xmm  xmm xmm
+//	VPBLENDMD ymm  ymm k ymm
+//	VPBLENDMD ymm  ymm ymm
+//	VPBLENDMD m512 zmm k zmm
+//	VPBLENDMD m512 zmm zmm
+//	VPBLENDMD zmm  zmm k zmm
+//	VPBLENDMD zmm  zmm zmm
+func (amd64 *Amd64) VPBLENDMD(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPBLENDMD", r1, r2, k, r3)
+}
+
+// VEXTRACTI64X2
+func (amd64 *Amd64) VEXTRACTI64X2(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VEXTRACTI64X2", imm8, r1, r2)
+}
+
 // VPERMD: Permute Doubleword Integers
 func (amd64 *Amd64) VPERMD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPERMD", r1, r2, r3)
@@ -130,6 +225,21 @@ func (amd64 *Amd64) KMOVW(r1, r2 interface{}, comment ...string) {
 // KMOVD Move 32-bit Mask
 func (amd64 *Amd64) KMOVD(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "KMOVD", r1, r2)
+}
+
+// KMOVQ Move 64-bit Mask
+func (amd64 *Amd64) KMOVQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KMOVQ", r1, r2)
+}
+
+// VPINSRQ: Insert Quadword.
+//
+// Forms:
+//
+//	VPINSRQ imm8 m64 xmm xmm
+//	VPINSRQ imm8 r64 xmm xmm
+func (amd64 *Amd64) VPINSRQ(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPINSRQ", imm8, r1, r2, r3)
 }
 
 // KSHIFTLW Shift 16-bit Mask Left
@@ -192,6 +302,90 @@ func (amd64 *Amd64) VPMOVZXDQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMOVZXDQ", r1, r2)
 }
 
+// VPSHUFD: Shuffle Packed Doublewords.
+//
+// Forms:
+//
+//	VPSHUFD imm8 m256 ymm
+//	VPSHUFD imm8 ymm  ymm
+//	VPSHUFD imm8 m128 xmm
+//	VPSHUFD imm8 xmm  xmm
+//	VPSHUFD imm8 m128 k xmm
+//	VPSHUFD imm8 m256 k ymm
+//	VPSHUFD imm8 xmm  k xmm
+//	VPSHUFD imm8 ymm  k ymm
+//	VPSHUFD imm8 m512 k zmm
+//	VPSHUFD imm8 m512 zmm
+//	VPSHUFD imm8 zmm  k zmm
+//	VPSHUFD imm8 zmm  zmm
+func (amd64 *Amd64) VPSHUFD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHUFD", imm8, r1, r2)
+}
+
+// VSHUFPD: Shuffle Packed Double-Precision Floating-Point Values.
+//
+// Forms:
+//
+//	VSHUFPD imm8 m128 xmm xmm
+//	VSHUFPD imm8 m256 ymm ymm
+//	VSHUFPD imm8 xmm  xmm xmm
+//	VSHUFPD imm8 ymm  ymm ymm
+//	VSHUFPD imm8 m128 xmm k xmm
+//	VSHUFPD imm8 m256 ymm k ymm
+//	VSHUFPD imm8 xmm  xmm k xmm
+//	VSHUFPD imm8 ymm  ymm k ymm
+//	VSHUFPD imm8 m512 zmm k zmm
+//	VSHUFPD imm8 m512 zmm zmm
+//	VSHUFPD imm8 zmm  zmm k zmm
+//	VSHUFPD imm8 zmm  zmm zmm
+func (amd64 *Amd64) VSHUFPD(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VSHUFPD", imm8, r1, r2, r3)
+}
+
+// VSHUFF32X4: Shuffle 128-Bit Packed Single-Precision Floating-Point Values.
+//
+// Forms:
+//
+//	VSHUFF32X4 imm8 m256 ymm k ymm
+//	VSHUFF32X4 imm8 m256 ymm ymm
+//	VSHUFF32X4 imm8 ymm  ymm k ymm
+//	VSHUFF32X4 imm8 ymm  ymm ymm
+//	VSHUFF32X4 imm8 m512 zmm k zmm
+//	VSHUFF32X4 imm8 m512 zmm zmm
+//	VSHUFF32X4 imm8 zmm  zmm k zmm
+//	VSHUFF32X4 imm8 zmm  zmm zmm
+func (amd64 *Amd64) VSHUFF32X4(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VSHUFF32X4", imm8, r1, r2, r3)
+}
+
+// VINSERTI64X4: Insert 256 Bits of Packed Quadword Integer Values.
+//
+// Forms:
+//
+//	VINSERTI64X4 imm8 m256 zmm k zmm
+//	VINSERTI64X4 imm8 m256 zmm zmm
+//	VINSERTI64X4 imm8 ymm  zmm k zmm
+//	VINSERTI64X4 imm8 ymm  zmm zmm
+func (amd64 *Amd64) VINSERTI64X4(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VINSERTI64X4", imm8, r1, r2, r3)
+}
+
+// VINSERTI64X2: Insert 128 Bits of Packed Quadword Integer Values.
+//
+// Forms:
+//
+//	VINSERTI64X2 imm8 m128 ymm k ymm
+//	VINSERTI64X2 imm8 m128 ymm ymm
+//	VINSERTI64X2 imm8 xmm  ymm k ymm
+//	VINSERTI64X2 imm8 xmm  ymm ymm
+//	VINSERTI64X2 imm8 m128 zmm k zmm
+//	VINSERTI64X2 imm8 m128 zmm zmm
+//	VINSERTI64X2 imm8 xmm  zmm k zmm
+//	VINSERTI64X2 imm8 xmm  zmm zmm
+func (amd64 *Amd64) VINSERTI64X2(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VINSERTI64X2", imm8, r1, r2, r3)
+}
+
 // VMOVDQU32: Move Unaligned Doubleword Values
 func (amd64 *Amd64) VMOVDQU32(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQU32", r1, r2)
@@ -200,6 +394,26 @@ func (amd64 *Amd64) VMOVDQU32(r1, r2 interface{}, comment ...string) {
 // VMOVDQU64 Move Unaligned Quadword Values
 func (amd64 *Amd64) VMOVDQU64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
+}
+
+// VPERMI2Q: Full Permute of Quadwords From Two Tables Overwriting the Index.
+//
+// Forms:
+//
+//	VPERMI2Q m128 xmm k xmm
+//	VPERMI2Q m128 xmm xmm
+//	VPERMI2Q m256 ymm k ymm
+//	VPERMI2Q m256 ymm ymm
+//	VPERMI2Q xmm  xmm k xmm
+//	VPERMI2Q xmm  xmm xmm
+//	VPERMI2Q ymm  ymm k ymm
+//	VPERMI2Q ymm  ymm ymm
+//	VPERMI2Q m512 zmm k zmm
+//	VPERMI2Q m512 zmm zmm
+//	VPERMI2Q zmm  zmm k zmm
+//	VPERMI2Q zmm  zmm zmm
+func (amd64 *Amd64) VPERMI2Q(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMI2Q", r1, r2, r3)
 }
 
 // VMOVDQU64 Move Unaligned Quadword Values
@@ -431,6 +645,11 @@ func (amd64 *Amd64) JCS(label Label, comment ...string) {
 // JCC x86 JNB Jump short if not below (CF=0).
 func (amd64 *Amd64) JCC(label Label, comment ...string) {
 	amd64.writeOp(comment, "JCC", string(label))
+}
+
+// JGE
+func (amd64 *Amd64) JGE(label Label, comment ...string) {
+	amd64.writeOp(comment, "JGE", string(label))
 }
 
 func (amd64 *Amd64) JMP(label Label, comment ...string) {
