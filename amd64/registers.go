@@ -3,7 +3,9 @@
 
 package amd64
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	AX  = Register("AX")
@@ -23,19 +25,88 @@ const (
 	R15 = Register("R15")
 )
 
+// Z0 .. Z31 AVX512 registers
+const (
+	Z0  = VectorRegister("Z0")
+	Z1  = VectorRegister("Z1")
+	Z2  = VectorRegister("Z2")
+	Z3  = VectorRegister("Z3")
+	Z4  = VectorRegister("Z4")
+	Z5  = VectorRegister("Z5")
+	Z6  = VectorRegister("Z6")
+	Z7  = VectorRegister("Z7")
+	Z8  = VectorRegister("Z8")
+	Z9  = VectorRegister("Z9")
+	Z10 = VectorRegister("Z10")
+	Z11 = VectorRegister("Z11")
+	Z12 = VectorRegister("Z12")
+	Z13 = VectorRegister("Z13")
+	Z14 = VectorRegister("Z14")
+	Z15 = VectorRegister("Z15")
+	Z16 = VectorRegister("Z16")
+	Z17 = VectorRegister("Z17")
+	Z18 = VectorRegister("Z18")
+	Z19 = VectorRegister("Z19")
+	Z20 = VectorRegister("Z20")
+	Z21 = VectorRegister("Z21")
+	Z22 = VectorRegister("Z22")
+	Z23 = VectorRegister("Z23")
+	Z24 = VectorRegister("Z24")
+	Z25 = VectorRegister("Z25")
+	Z26 = VectorRegister("Z26")
+	Z27 = VectorRegister("Z27")
+	Z28 = VectorRegister("Z28")
+	Z29 = VectorRegister("Z29")
+	Z30 = VectorRegister("Z30")
+	Z31 = VectorRegister("Z31")
+)
+
+const (
+	K1 = MaskRegister("K1")
+	K2 = MaskRegister("K2")
+	K3 = MaskRegister("K3")
+	K4 = MaskRegister("K4")
+)
+
 type Label string
 type Register string
+type VectorRegister string
+type MaskRegister string
+
+func (vr VectorRegister) Y() VectorRegister {
+	// replace first letter by Y
+	return VectorRegister("Y" + string(vr[1:]))
+}
+
+func (vr VectorRegister) X() VectorRegister {
+	// replace first letter by X
+	return VectorRegister("X" + string(vr[1:]))
+}
+
+func (vr VectorRegister) Z() VectorRegister {
+	// replace first letter by Z
+	return VectorRegister("Z" + string(vr[1:]))
+}
 
 type Registers struct {
-	registers []Register
+	registers  []Register
+	vRegisters []VectorRegister
 }
 
 func (r *Register) At(wordOffset int) string {
 	return fmt.Sprintf("%d(%s)", wordOffset*8, string(*r))
 }
 
+func (r *Register) AtD(wordOffset int) Register {
+	return Register(fmt.Sprintf("%d(%s)", wordOffset*4, string(*r)))
+}
+
 func (r *Registers) Available() int {
 	return len(r.registers)
+}
+
+func (r *Registers) AvailableV() int {
+	return len(r.vRegisters)
 }
 
 func (r *Registers) Pop() Register {
@@ -44,10 +115,24 @@ func (r *Registers) Pop() Register {
 	return toReturn
 }
 
+func (r *Registers) PopV() VectorRegister {
+	toReturn := r.vRegisters[0]
+	r.vRegisters = r.vRegisters[1:]
+	return toReturn
+}
+
 func (r *Registers) PopN(n int) []Register {
 	toReturn := make([]Register, n)
 	for i := 0; i < n; i++ {
 		toReturn[i] = r.Pop()
+	}
+	return toReturn
+}
+
+func (r *Registers) PopVN(n int) []VectorRegister {
+	toReturn := make([]VectorRegister, n)
+	for i := 0; i < n; i++ {
+		toReturn[i] = r.PopV()
 	}
 	return toReturn
 }
@@ -84,11 +169,30 @@ func (r *Registers) Push(rIn ...Register) {
 
 }
 
+func (r *Registers) PushV(vIn ...VectorRegister) {
+	// ensure register is in our original list, and no duplicate
+	for _, register := range vIn {
+		found := false
+		for _, existing := range r.vRegisters {
+			if register == existing {
+				found = true
+				break
+			}
+		}
+		if found {
+			panic("duplicate register, already present.")
+		}
+		r.vRegisters = append(r.vRegisters, register)
+	}
+}
+
 func NewRegisters() Registers {
 	r := Registers{
-		registers: make([]Register, len(registers)),
+		registers:  make([]Register, len(registers)),
+		vRegisters: make([]VectorRegister, len(vRegisters)),
 	}
 	copy(r.registers, registers)
+	copy(r.vRegisters, vRegisters)
 	return r
 }
 
@@ -110,6 +214,41 @@ var registers = []Register{
 	"R13",
 	"R14",
 	"R15",
+}
+
+var vRegisters = []VectorRegister{
+	Z0,
+	Z1,
+	Z2,
+	Z3,
+	Z4,
+	Z5,
+	Z6,
+	Z7,
+	Z8,
+	Z9,
+	Z10,
+	Z11,
+	Z12,
+	Z13,
+	Z14,
+	Z15,
+	Z16,
+	Z17,
+	Z18,
+	Z19,
+	Z20,
+	Z21,
+	Z22,
+	Z23,
+	Z24,
+	Z25,
+	Z26,
+	Z27,
+	Z28,
+	Z29,
+	Z30,
+	Z31,
 }
 
 var registerSet map[Register]struct{}
