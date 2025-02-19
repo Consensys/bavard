@@ -643,3 +643,13 @@ func (amd64 *Amd64) VMOVD(r1, r2 interface{}, comment ...string) {
 func (amd64 *Amd64) VPCMPEQB(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPCMPEQB", r1, r2, r3)
 }
+
+// PEXTRQ: Extract Quadword.
+//
+// Forms:
+//
+//	PEXTRQ imm8 xmm m64
+//	PEXTRQ imm8 xmm r64
+func (amd64 *Amd64) PEXTRQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PEXTRQ", imm8, r1, r2)
+}
