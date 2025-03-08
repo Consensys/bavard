@@ -77,6 +77,10 @@ func (amd64 *Amd64) MOVQ(r1, r2 interface{}, comment ...string) {
 	}
 }
 
+func (amd64 *Amd64) MOVL(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "MOVL", r1, r2)
+}
+
 // MOVD
 func (amd64 *Amd64) MOVD(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVD", r1, r2)
@@ -88,6 +92,10 @@ func (amd64 *Amd64) BTQ(r1, r2 interface{}, comment ...string) {
 
 func (amd64 *Amd64) MOVUPS(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MOVUPS", r1, r2)
+}
+
+func (amd64 *Amd64) LEAL(offset, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "LEAL", fmt.Sprintf("%s(%s)", op(offset), op(r1)), r2)
 }
 
 func (amd64 *Amd64) ANDQ(r1, r2 interface{}, comment ...string) {
@@ -146,12 +154,28 @@ func (amd64 *Amd64) IMULQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "IMULQ", r1, r2)
 }
 
+func (amd64 *Amd64) IMUL3Q(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "IMUL3Q", r1, r2, r3)
+}
+
+func (amd64 *Amd64) XCHGL(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "XCHGL", r1, r2)
+}
+
+func (amd64 *Amd64) IMUL3L(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "IMUL3L", r1, r2, r3)
+}
+
 func (amd64 *Amd64) MULQ(r1 interface{}, comment ...string) {
 	amd64.writeOp(comment, "MULQ", r1)
 }
 
 func (amd64 *Amd64) CMPB(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "CMPB", r1, r2)
+}
+
+func (amd64 *Amd64) CMPL(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMPL", r1, r2)
 }
 
 func (amd64 *Amd64) CMPQ(r1, r2 interface{}, comment ...string) {
@@ -172,6 +196,10 @@ func (amd64 *Amd64) XCHGQ(r1, r2 interface{}, comment ...string) {
 
 func (amd64 *Amd64) CMOVQCC(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "CMOVQCC", r1, r2)
+}
+
+func (amd64 *Amd64) CMOVLCC(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "CMOVLCC", r1, r2)
 }
 
 func (amd64 *Amd64) CMOVQEQ(r1, r2 interface{}, comment ...string) {

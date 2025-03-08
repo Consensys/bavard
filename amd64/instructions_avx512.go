@@ -94,7 +94,7 @@ func (amd64 *Amd64) VPADDD(r1, r2, r3 interface{}, comment ...string) {
 }
 
 // VPADDDk: Add Packed Doubleword Integers
-func (amd64 *Amd64) VPADDDk(r1, r2, k, r3 interface{}, comment ...string) {
+func (amd64 *Amd64) VPADDDk(r1, r2, r3, k interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPADDD", r1, r2, k, r3)
 }
 
@@ -103,9 +103,17 @@ func (amd64 *Amd64) VPSUBD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSUBD", r1, r2, r3)
 }
 
+func (amd64 *Amd64) VPSUBDk(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSUBD", r1, r2, k, r3)
+}
+
 // VPMINUD: Minimum of Packed Unsigned Doubleword Integers
 func (amd64 *Amd64) VPMINUD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMINUD", r1, r2, r3)
+}
+
+func (amd64 *Amd64) VPMINUDk(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMINUD", r1, r2, k, r3)
 }
 
 // VPMINUQ: Minimum of Packed Unsigned Quadword Integers
@@ -116,6 +124,10 @@ func (amd64 *Amd64) VPMINUQ(r1, r2, r3 interface{}, comment ...string) {
 // VPSLLQ: Shift Packed Quadword Data Left Logical
 func (amd64 *Amd64) VPSLLQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSLLQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) VPSLLD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLD", r1, r2, r3)
 }
 
 // VPSUBQ: Subtract Packed Quadword Integers
@@ -222,6 +234,11 @@ func (amd64 *Amd64) VPBLENDMD(r1, r2, r3, k interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPBLENDMD", r1, r2, k, r3)
 }
 
+// VPBLENDD
+func (amd64 *Amd64) VPBLENDD(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPBLENDD", imm8, r1, r2, r3)
+}
+
 // VEXTRACTI64X2
 func (amd64 *Amd64) VEXTRACTI64X2(imm8, r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VEXTRACTI64X2", imm8, r1, r2)
@@ -260,6 +277,11 @@ func (amd64 *Amd64) KMOVQ(r1, r2 interface{}, comment ...string) {
 //	VPINSRQ imm8 r64 xmm xmm
 func (amd64 *Amd64) VPINSRQ(imm8, r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPINSRQ", imm8, r1, r2, r3)
+}
+
+// VPINSRD: Insert Doubleword.
+func (amd64 *Amd64) VPINSRD(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPINSRD", imm8, r1, r2, r3)
 }
 
 // KSHIFTLW Shift 16-bit Mask Left
@@ -345,6 +367,11 @@ func (amd64 *Amd64) VMOVDQA64(r1, r2 interface{}, comment ...string) {
 // VMOVDQA64_Z Move Aligned Quadword Values  (Zeroing Masking).
 func (amd64 *Amd64) VMOVDQA64_Z(r1, k, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQA64.Z", r1, k, r2)
+}
+
+// VMOVDQA32_Z Move Aligned Quadword Values  (Zeroing Masking).
+func (amd64 *Amd64) VMOVDQA32_Z(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VMOVDQA32.Z", r1, k, r2)
 }
 
 // VPMOVQD: Down Convert Packed Quadword Values to Doubleword Values with Truncation.
@@ -547,6 +574,11 @@ func (amd64 *Amd64) VPERMI2Q(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPERMI2Q", r1, r2, r3)
 }
 
+// VPERMI2D: Full Permute of Doublewords From Two Tables Overwriting the Index.
+func (amd64 *Amd64) VPERMI2D(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMI2D", r1, r2, r3)
+}
+
 // VMOVDQU64 Move Unaligned Quadword Values
 func (amd64 *Amd64) VMOVDQU64k(r1, k, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQU64", r1, k, r2)
@@ -577,9 +609,17 @@ func (amd64 *Amd64) VPADDQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPADDQ", r1, r2, r3)
 }
 
+func (amd64 *Amd64) VPADDQk(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPADDQ", r1, r2, k, r3)
+}
+
 // VPMULUDQ Multiply Packed Unsigned Doubleword Integers
 func (amd64 *Amd64) VPMULUDQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPMULUDQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) VPMULUDQk(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMULUDQ", r1, r2, k, r3)
 }
 
 // VPMULUDQ_BCST Multiply Packed Unsigned Doubleword Integers (Broadcast).
@@ -607,6 +647,10 @@ func (amd64 *Amd64) VPANDDkz(r1, r2, k, r3 interface{}, comment ...string) {
 // VPSRLQ Shift Packed Quadword Data Right Logical
 func (amd64 *Amd64) VPSRLQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSRLQ", r1, r2, r3)
+}
+
+func (amd64 *Amd64) VPSRLQk(r1, r2, r3, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRLQ", r1, r2, k, r3)
 }
 
 // VPEXTRQ Extract Quadword
@@ -652,4 +696,9 @@ func (amd64 *Amd64) VPCMPEQB(r1, r2, r3 interface{}, comment ...string) {
 //	PEXTRQ imm8 xmm r64
 func (amd64 *Amd64) PEXTRQ(imm8, r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "PEXTRQ", imm8, r1, r2)
+}
+
+// PEXTRD: Extract Doubleword.
+func (amd64 *Amd64) PEXTRD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PEXTRD", imm8, r1, r2)
 }
