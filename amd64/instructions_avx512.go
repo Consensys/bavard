@@ -1,5 +1,7 @@
 package amd64
 
+import "fmt"
+
 // AVX 512 instructions
 // some of the documentation (in particular for AVX512 ops) is taken from https://github.com/mmcloughlin/avo
 
@@ -98,6 +100,16 @@ func (amd64 *Amd64) VPADDDk(r1, r2, r3, k interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPADDD", r1, r2, k, r3)
 }
 
+// VPTESTMD zmm  zmm k
+func (amd64 *Amd64) VPTESTMD(r1, r2, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPTESTMD", r1, r2, k)
+}
+
+// VPMADDWD zmm  zmm zmm
+func (amd64 *Amd64) VPMADDWD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMADDWD", r1, r2, r3)
+}
+
 // VPSUBD: Subtract Packed Doubleword Integers
 func (amd64 *Amd64) VPSUBD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSUBD", r1, r2, r3)
@@ -128,6 +140,10 @@ func (amd64 *Amd64) VPSLLQ(r1, r2, r3 interface{}, comment ...string) {
 
 func (amd64 *Amd64) VPSLLD(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSLLD", r1, r2, r3)
+}
+
+func (amd64 *Amd64) VPSLLDk(r1, r2, k, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLD", r1, r2, k, r3)
 }
 
 // VPSUBQ: Subtract Packed Quadword Integers
@@ -552,6 +568,17 @@ func (amd64 *Amd64) VMOVDQU32(r1, r2 interface{}, comment ...string) {
 // VMOVDQU64 Move Unaligned Quadword Values
 func (amd64 *Amd64) VMOVDQU64(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VMOVDQU64", r1, r2)
+}
+
+// VPGATHERDD: Gather Packed Doubleword Values Using Signed Doubleword Indices.
+// example: VPGATHERDD  8(AX)(Z18*4), K7, Z6
+func (amd64 *Amd64) VPGATHERDD(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, res VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPGATHERDD", fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale), mask, res)
+}
+
+// VPSCATTERDD: Scatter Packed Doubleword Values with Signed Doubleword Indices.
+func (amd64 *Amd64) VPSCATTERDD(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, src VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPSCATTERDD", src, mask, fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale))
 }
 
 // VPERMI2Q: Full Permute of Quadwords From Two Tables Overwriting the Index.
