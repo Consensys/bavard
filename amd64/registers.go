@@ -172,6 +172,7 @@ func (r *Registers) Push(rIn ...Register) {
 func (r *Registers) PushV(vIn ...VectorRegister) {
 	// ensure register is in our original list, and no duplicate
 	for _, register := range vIn {
+		register = register.Z()
 		found := false
 		for _, existing := range r.vRegisters {
 			if register == existing {

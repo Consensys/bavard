@@ -267,6 +267,26 @@ func (amd64 *Amd64) FnHeader(funcName string, stackSize, argSize int, reserved .
 	return r
 }
 
+// FnHeaderRegABI is an experimental replacement to call (post go 1.17) the assembly functions
+// passing arguments in registers instead of on the stack.
+func (amd64 *Amd64) FnHeaderRegABI(funcName string, stackSize, argSize int, reserved ...Register) Registers {
+	// First 6 integer/pointer arguments go in: RDI, RSI, RDX, RCX, R8, R9.
+	var header string
+	if stackSize == 0 {
+		header = "TEXT ·%s(SB), NOSPLIT, $%d"
+	} else {
+		header = "TEXT ·%s(SB), $%d"
+	}
+
+	amd64.WriteLn(fmt.Sprintf(header, funcName, stackSize))
+
+	r := NewRegisters()
+	for _, rr := range reserved {
+		r.Remove(rr)
+	}
+	return r
+}
+
 func (amd64 *Amd64) WriteLn(s string) {
 	amd64.write(s + "\n")
 }
