@@ -22,7 +22,8 @@ const (
 	R12 = Register("R12")
 	R13 = Register("R13")
 	R14 = Register("R14")
-	R15 = Register("R15")
+
+	R15 = Register("R15") // use with caution, see https://github.com/Consensys/gnark-crypto/issues/707
 )
 
 // Z0 .. Z31 AVX512 registers
@@ -169,6 +170,28 @@ func (r *Registers) Push(rIn ...Register) {
 
 }
 
+// UnsafePush is used to push registers without checking if they are known registers.
+func (r *Registers) UnsafePush(rIn ...Register) {
+	// ensure register is in our original list, and no duplicate
+	for _, register := range rIn {
+		if _, ok := registerSet[register]; !ok {
+			fmt.Printf("warning: unknown register %s\n", register)
+		}
+		found := false
+		for _, existing := range r.registers {
+			if register == existing {
+				found = true
+				break
+			}
+		}
+		if found {
+			panic("duplicate register, already present.")
+		}
+		r.registers = append(r.registers, register)
+	}
+
+}
+
 func (r *Registers) PushV(vIn ...VectorRegister) {
 	// ensure register is in our original list, and no duplicate
 	for _, register := range vIn {
@@ -198,23 +221,23 @@ func NewRegisters() Registers {
 }
 
 // NbRegisters contains nb default available registers, without BP
-const NbRegisters = 14
+const NbRegisters = 13
 
 var registers = []Register{
-	"AX",
-	"DX",
-	"CX",
-	"BX",
-	"SI",
-	"DI",
-	"R8",
-	"R9",
-	"R10",
-	"R11",
-	"R12",
-	"R13",
-	"R14",
-	"R15",
+	AX,
+	DX,
+	CX,
+	BX,
+	SI,
+	DI,
+	R8,
+	R9,
+	R10,
+	R11,
+	R12,
+	R13,
+	R14,
+	// R15,
 }
 
 var vRegisters = []VectorRegister{
