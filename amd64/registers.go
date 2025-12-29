@@ -175,7 +175,7 @@ func (r *Registers) UnsafePush(rIn ...Register) {
 	// ensure register is in our original list, and no duplicate
 	for _, register := range rIn {
 		if _, ok := registerSet[register]; !ok {
-			fmt.Printf("warning: unknown register %s\n", register)
+			// fmt.Printf("warning: unknown register %s\n", register)
 		}
 		found := false
 		for _, existing := range r.registers {
