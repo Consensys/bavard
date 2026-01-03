@@ -521,6 +521,49 @@ func (arm64 *Arm64) VCMGT(src1, src2, dst VectorRegister, comment ...string) {
 	arm64.writeWordOp(encoding, fmt.Sprintf("CMGT %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
 }
 
+// VCMLT performs signed less-than comparison (implemented as CMGT with swapped operands)
+// CMLT Vd.4S, Vn.4S, Vm.4S - sets each element of Vd to all 1s if Vn < Vm, else all 0s
+func (arm64 *Arm64) VCMLT(src1, src2, dst VectorRegister, comment ...string) {
+	// CMLT is actually CMGT with operands swapped
+	arm64.VCMGT(src2, src1, dst, comment...)
+}
+
+// VSQDMULH performs signed saturating doubling multiply returning high half
+// SQDMULH Vd.4S, Vn.4S, Vm.4S - computes (2*Vn*Vm) >> 32 (with saturation)
+func (arm64 *Arm64) VSQDMULH(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 1 Rm 1011 01 Rn Rd
+	// 0x4ea0b400 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4ea0b400) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("SQDMULH %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VSHSUB performs signed halving subtract
+// SHSUB Vd.4S, Vn.4S, Vm.4S - computes (Vn - Vm) / 2
+func (arm64 *Arm64) VSHSUB(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 1 Rm 0010 01 Rn Rd
+	// 0x4ea02400 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4ea02400) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("SHSUB %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VMLS performs multiply-subtract from accumulator
+// MLS Vd.4S, Vn.4S, Vm.4S - computes Vd = Vd - Vn * Vm
+func (arm64 *Arm64) VMLS(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 1 01110 10 1 Rm 1001 01 Rn Rd
+	// 0x6ea09400 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x6ea09400) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("MLS %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
 // VLD1_P_Multi loads multiple registers with post-increment
 // VLD1.P offset(src), [Vt1.4S, Vt2.4S, ...]
 func (arm64 *Arm64) VLD1_P_Multi(offset int, src interface{}, dsts ...VectorRegister) {
