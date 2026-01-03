@@ -461,6 +461,30 @@ func (arm64 *Arm64) VUMULL2(src1, src2, dst VectorRegister, comment ...string) {
 	arm64.writeWordOp(encoding, fmt.Sprintf("UMULL2 %s.2D, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
 }
 
+// VUMLSL performs unsigned multiply-subtract long on the lower halves of two vectors
+// UMLSL Vd.2D, Vn.2S, Vm.2S - multiplies 2 pairs of 32-bit elements to produce 2 64-bit results and subtracts from accumulator
+func (arm64 *Arm64) VUMLSL(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 01 01110 10 1 Rm 1010 00 Rn Rd
+	// 0x2ea0a000 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x2ea0a000) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UMLSL %s.2D, %s.2S, %s.2S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VUMLSL2 performs unsigned multiply-subtract long on the upper halves of two vectors
+// UMLSL2 Vd.2D, Vn.4S, Vm.4S - multiplies 2 pairs of upper 32-bit elements to produce 2 64-bit results and subtracts from accumulator
+func (arm64 *Arm64) VUMLSL2(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 10 01110 10 1 Rm 1010 00 Rn Rd
+	// 0x6ea0a000 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x6ea0a000) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UMLSL2 %s.2D, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
 // VMUL_S4 performs 32-bit integer multiply on vectors (4 lanes)
 // MUL Vd.4S, Vn.4S, Vm.4S
 func (arm64 *Arm64) VMUL_S4(src1, src2, dst VectorRegister, comment ...string) {
