@@ -311,6 +311,10 @@ func (arm64 *Arm64) BEQ(label string, comment ...string) {
 	arm64.writeOp(comment, "BEQ", label)
 }
 
+func (arm64 *Arm64) BLT(label Label, comment ...string) {
+	arm64.writeOp(comment, "BLT", string(label))
+}
+
 func toTuple(x, y interface{}) string {
 	return fmt.Sprintf("(%s, %s)", Operand(x), Operand(y))
 }
@@ -407,4 +411,147 @@ func (arm64 *Arm64) writeOp(comments []string, instruction string, r0 interface{
 	arm64.write("\n")
 }
 
-// </ copy paste>
+// -----------------------------------------------------------------------------
+// NEON instructions not directly supported by the Go assembler
+// These are encoded as raw WORD instructions
+// -----------------------------------------------------------------------------
+
+// vRegNum extracts the numeric register ID from a VectorRegister (V0 -> 0, V31 -> 31)
+func vRegNum(v VectorRegister) uint32 {
+	s := string(v)
+	// Remove any suffix like .S4, .D2, etc.
+	for i := 0; i < len(s); i++ {
+		if s[i] == '.' {
+			s = s[:i]
+			break
+		}
+	}
+	// Parse "Vn" where n is 0-31
+	if len(s) < 2 || s[0] != 'V' {
+		panic("invalid vector register: " + string(v))
+	}
+	var n uint32
+	for i := 1; i < len(s); i++ {
+		n = n*10 + uint32(s[i]-'0')
+	}
+	return n
+}
+
+// VUMULL performs unsigned multiply long on the lower halves of two vectors
+// UMULL Vd.2D, Vn.2S, Vm.2S - multiplies 2 pairs of 32-bit elements to produce 2 64-bit results
+func (arm64 *Arm64) VUMULL(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 01 01110 10 1 Rm 1100 00 Rn Rd
+	// 0x2ea0c000 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x2ea0c000) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UMULL %s.2D, %s.2S, %s.2S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VUMULL2 performs unsigned multiply long on the upper halves of two vectors
+// UMULL2 Vd.2D, Vn.4S, Vm.4S - multiplies 2 pairs of upper 32-bit elements to produce 2 64-bit results
+func (arm64 *Arm64) VUMULL2(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 10 01110 10 1 Rm 1100 00 Rn Rd
+	// 0x6ea0c000 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x6ea0c000) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UMULL2 %s.2D, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VMUL_S4 performs 32-bit integer multiply on vectors (4 lanes)
+// MUL Vd.4S, Vn.4S, Vm.4S
+func (arm64 *Arm64) VMUL_S4(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 1 Rm 10011 1 Rn Rd
+	// 0x4ea09c00 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4ea09c00) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("MUL %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VUZP2 deinterleaves the odd elements from two vectors
+// UZP2 Vd.4S, Vn.4S, Vm.4S
+func (arm64 *Arm64) VUZP2(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 0 Rm 0 101 10 Rn Rd
+	// 0x4e805800 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4e805800) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UZP2 %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VCMGT performs signed greater-than comparison
+// CMGT Vd.4S, Vn.4S, Vm.4S - sets each element of Vd to all 1s if Vn > Vm, else all 0s
+func (arm64 *Arm64) VCMGT(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 1 Rm 0011 01 Rn Rd
+	// 0x4ea03400 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4ea03400) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("CMGT %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
+// VLD1_P_Multi loads multiple registers with post-increment
+// VLD1.P offset(src), [Vt1.4S, Vt2.4S, ...]
+func (arm64 *Arm64) VLD1_P_Multi(offset int, src interface{}, dsts ...VectorRegister) {
+	srcStr := fmt.Sprintf("%d(%s)", offset, Operand(src))
+	var dstParts []string
+	for _, d := range dsts {
+		dstParts = append(dstParts, string(d.S4()))
+	}
+	arm64.write(fmt.Sprintf("    VLD1.P %s, [%s]\n", srcStr, join(dstParts, ", ")))
+}
+
+// VST1_P_Multi stores multiple registers with post-increment
+// VST1.P [Vt1.4S, Vt2.4S, ...], offset(dst)
+func (arm64 *Arm64) VST1_P_Multi(offset int, dst interface{}, srcs ...VectorRegister) {
+	dstStr := fmt.Sprintf("%d(%s)", offset, Operand(dst))
+	var srcParts []string
+	for _, s := range srcs {
+		srcParts = append(srcParts, string(s.S4()))
+	}
+	arm64.write(fmt.Sprintf("    VST1.P [%s], %s\n", join(srcParts, ", "), dstStr))
+}
+
+func join(parts []string, sep string) string {
+	if len(parts) == 0 {
+		return ""
+	}
+	result := parts[0]
+	for i := 1; i < len(parts); i++ {
+		result += sep + parts[i]
+	}
+	return result
+}
+
+func baseReg(v VectorRegister) string {
+	s := string(v)
+	for i := 0; i < len(s); i++ {
+		if s[i] == '.' {
+			return s[:i]
+		}
+	}
+	return s
+}
+
+func (arm64 *Arm64) writeWordOp(encoding uint32, asmComment string, comment ...string) {
+	line := fmt.Sprintf("    WORD $0x%08x", encoding)
+	if asmComment != "" {
+		line += " // " + asmComment
+	}
+	if len(comment) == 1 {
+		if asmComment != "" {
+			line += " - "
+		} else {
+			line += " // "
+		}
+		line += comment[0]
+	}
+	arm64.write(line + "\n")
+}
