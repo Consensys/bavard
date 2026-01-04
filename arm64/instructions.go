@@ -564,6 +564,29 @@ func (arm64 *Arm64) VMLS(src1, src2, dst VectorRegister, comment ...string) {
 	arm64.writeWordOp(encoding, fmt.Sprintf("MLS %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
 }
 
+// VUADALP performs unsigned add and accumulate long pairwise
+// UADALP Vd.2D, Vn.4S - adds adjacent pairs of 32-bit elements, widens to 64-bit, and accumulates
+func (arm64 *Arm64) VUADALP(src, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 1 01110 10 1 00000 0110 10 Rn Rd
+	// 0x6ea06800 | (Rn << 5) | Rd
+	n := vRegNum(src)
+	d := vRegNum(dst)
+	encoding := uint32(0x6ea06800) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UADALP %s.2D, %s.4S", baseReg(dst), baseReg(src)), comment...)
+}
+
+// VADDP performs add pairwise for vectors
+// ADDP Vd.4S, Vn.4S, Vm.4S - adds adjacent pairs from both vectors
+func (arm64 *Arm64) VADDP(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 1 Rm 1011 11 Rn Rd
+	// 0x4ea0bc00 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4ea0bc00) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("ADDP %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
 // VLD1_P_Multi loads multiple registers with post-increment
 // VLD1.P offset(src), [Vt1.4S, Vt2.4S, ...]
 func (arm64 *Arm64) VLD1_P_Multi(offset int, src interface{}, dsts ...VectorRegister) {
