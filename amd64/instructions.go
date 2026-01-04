@@ -328,3 +328,11 @@ func op(i interface{}) string {
 	}
 	panic("unsupported interface type")
 }
+
+func (amd64 *Amd64) TESTB(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "TESTB", r1, r2)
+}
+
+func (amd64 *Amd64) JNZ(label interface{}, comment ...string) {
+	amd64.writeOp(comment, "JNZ", label)
+}

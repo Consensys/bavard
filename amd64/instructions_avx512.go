@@ -80,6 +80,16 @@ func (amd64 *Amd64) VPMADD52LUQ(r1, r2, r3 any, comment ...string) {
 	amd64.writeOp(comment, "VPMADD52LUQ", r1, r2, r3)
 }
 
+// VPMADD52LUQ_BCST: Packed Multiply of Unsigned 52-bit Integers and Add Low 52-bit Products (Broadcast).
+func (amd64 *Amd64) VPMADD52LUQ_BCST(r1, r2, r3 any, comment ...string) {
+	amd64.writeOp(comment, "VPMADD52LUQ.BCST", r1, r2, r3)
+}
+
+// VPMADD52HUQ_BCST: Packed Multiply of Unsigned 52-bit Integers and Add High 52-bit Products (Broadcast).
+func (amd64 *Amd64) VPMADD52HUQ_BCST(r1, r2, r3 any, comment ...string) {
+	amd64.writeOp(comment, "VPMADD52HUQ.BCST", r1, r2, r3)
+}
+
 // VPBROADCASTQ: Broadcast Quadword Integer
 func (amd64 *Amd64) VPBROADCASTQ(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPBROADCASTQ", r1, r2)
@@ -728,4 +738,34 @@ func (amd64 *Amd64) PEXTRQ(imm8, r1, r2 interface{}, comment ...string) {
 // PEXTRD: Extract Doubleword.
 func (amd64 *Amd64) PEXTRD(imm8, r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "PEXTRD", imm8, r1, r2)
+}
+
+// KORTESTQ: OR 64-bit Masks and Set Flags
+func (amd64 *Amd64) KORTESTQ(r1, r2 interface{}, comment ...string) {
+        amd64.writeOp(comment, "KORTESTQ", r1, r2)
+}
+
+// VPCMPUQ: Compare Packed Unsigned Quadword Values.
+func (amd64 *Amd64) VPCMPUQ(imm8, r1, r2, k interface{}, comment ...string) {
+        amd64.writeOp(comment, "VPCMPUQ", imm8, r1, r2, k)
+}
+
+// VPTESTMQ: Packed Quadword Test Mask
+func (amd64 *Amd64) VPTESTMQ(r1, r2, k interface{}, comment ...string) {
+        amd64.writeOp(comment, "VPTESTMQ", r1, r2, k)
+}
+
+// VPUNPCKLQDQ: Unpack and Interleave Low-Order Quadwords
+func (amd64 *Amd64) VPUNPCKLQDQ(r1, r2, r3 interface{}, comment ...string) {
+        amd64.writeOp(comment, "VPUNPCKLQDQ", r1, r2, r3)
+}
+
+// VPUNPCKHQDQ: Unpack and Interleave High-Order Quadwords
+func (amd64 *Amd64) VPUNPCKHQDQ(r1, r2, r3 interface{}, comment ...string) {
+        amd64.writeOp(comment, "VPUNPCKHQDQ", r1, r2, r3)
+}
+
+// KMOVB Move 8-bit Mask
+func (amd64 *Amd64) KMOVB(r1, r2 interface{}, comment ...string) {
+amd64.writeOp(comment, "KMOVB", r1, r2)
 }
