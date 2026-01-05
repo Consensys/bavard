@@ -497,6 +497,18 @@ func (arm64 *Arm64) VMUL_S4(src1, src2, dst VectorRegister, comment ...string) {
 	arm64.writeWordOp(encoding, fmt.Sprintf("MUL %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
 }
 
+// VUZP1 deinterleaves the even elements from two vectors
+// UZP1 Vd.4S, Vn.4S, Vm.4S
+func (arm64 *Arm64) VUZP1(src1, src2, dst VectorRegister, comment ...string) {
+	// Encoding: 0 1 0 01110 10 0 Rm 0 001 10 Rn Rd
+	// 0x4e801800 | (Rm << 16) | (Rn << 5) | Rd
+	n := vRegNum(src1)
+	m := vRegNum(src2)
+	d := vRegNum(dst)
+	encoding := uint32(0x4e801800) | (m << 16) | (n << 5) | d
+	arm64.writeWordOp(encoding, fmt.Sprintf("UZP1 %s.4S, %s.4S, %s.4S", baseReg(dst), baseReg(src1), baseReg(src2)), comment...)
+}
+
 // VUZP2 deinterleaves the odd elements from two vectors
 // UZP2 Vd.4S, Vn.4S, Vm.4S
 func (arm64 *Arm64) VUZP2(src1, src2, dst VectorRegister, comment ...string) {
