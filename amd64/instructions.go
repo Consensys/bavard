@@ -336,3 +336,209 @@ func (amd64 *Amd64) TESTB(r1, r2 interface{}, comment ...string) {
 func (amd64 *Amd64) JNZ(label interface{}, comment ...string) {
 	amd64.writeOp(comment, "JNZ", label)
 }
+
+// -----------------------------------------------------------------------------
+// Prefetch Instructions
+// -----------------------------------------------------------------------------
+
+// PREFETCHT0 prefetches data into all cache levels (temporal data).
+// Fetches the line of data from memory that contains the byte specified
+// with the source operand to a location in the cache hierarchy specified
+// by a locality hint (T0 = all cache levels).
+//
+// Forms:
+//
+//	PREFETCHT0 m8
+//
+// Example:
+//
+//	PREFETCHT0 2048(AX) // prefetch data 2KB ahead
+func (amd64 *Amd64) PREFETCHT0(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PREFETCHT0", r1)
+}
+
+// PREFETCHT1 prefetches data into L2 cache and higher (temporal data).
+// Fetches the line of data from memory that contains the byte specified
+// with the source operand to a location in the cache hierarchy specified
+// by a locality hint (T1 = L2 and higher).
+//
+// Forms:
+//
+//	PREFETCHT1 m8
+func (amd64 *Amd64) PREFETCHT1(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PREFETCHT1", r1)
+}
+
+// PREFETCHT2 prefetches data into L3 cache and higher (temporal data).
+// Fetches the line of data from memory that contains the byte specified
+// with the source operand to a location in the cache hierarchy specified
+// by a locality hint (T2 = L3 and higher).
+//
+// Forms:
+//
+//	PREFETCHT2 m8
+func (amd64 *Amd64) PREFETCHT2(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PREFETCHT2", r1)
+}
+
+// PREFETCHNTA prefetches data using non-temporal hint (minimizes cache pollution).
+// Fetches the line of data from memory that contains the byte specified
+// with the source operand to a location in the cache hierarchy specified
+// by a locality hint (NTA = non-temporal, use streaming stores).
+//
+// Forms:
+//
+//	PREFETCHNTA m8
+func (amd64 *Amd64) PREFETCHNTA(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "PREFETCHNTA", r1)
+}
+
+// -----------------------------------------------------------------------------
+// Function Call Instructions
+// -----------------------------------------------------------------------------
+
+// CALL calls a procedure (function).
+// Saves procedure linking information on the stack and branches to the
+// procedure specified with the destination operand.
+//
+// Forms:
+//
+//	CALL rel32   // relative call
+//	CALL r/m64   // indirect call
+//
+// Example:
+//
+//	CALL ·myFunction(SB)     // call Go function
+//	CALL ·_mulGeneric(SB)    // call fallback implementation
+func (amd64 *Amd64) CALL(target interface{}, comment ...string) {
+	amd64.writeOp(comment, "CALL", target)
+}
+
+// -----------------------------------------------------------------------------
+// Assembly Directives for Data Sections
+// -----------------------------------------------------------------------------
+
+// DATA defines a data constant in the data section.
+// Used to define initialized data that will be embedded in the binary.
+//
+// Format:
+//
+//	DATA symbol<>+offset(SB)/width, value
+//
+// Example:
+//
+//	DATA ·myConst<>+0(SB)/8, $0x123456789ABCDEF0
+//	DATA ·permuteIdx<>+0(SB)/8, $0
+//
+// Parameters:
+//   - symbol: the symbol name (e.g., "·myConst<>")
+//   - offset: byte offset from symbol start
+//   - width: size of the data in bytes (1, 2, 4, or 8)
+//   - value: the constant value
+func (amd64 *Amd64) DATA(symbol string, offset int, width int, value interface{}, comment ...string) {
+	amd64.writeOp(comment, "DATA", fmt.Sprintf("%s+%d(SB)/%d", symbol, offset, width), value)
+}
+
+// GLOBL declares a global symbol with the specified size and flags.
+// Used to make symbols visible for linking and to specify their attributes.
+//
+// Common flags:
+//   - RODATA: read-only data section
+//   - NOPTR: data contains no pointers (helps GC)
+//   - DUPOK: allow duplicate symbols
+//
+// Format:
+//
+//	GLOBL symbol(SB), flags, $size
+//
+// Example:
+//
+//	GLOBL ·myConst<>(SB), RODATA|NOPTR, $64
+//
+// Parameters:
+//   - symbol: the symbol name (e.g., "·myConst<>")
+//   - flags: symbol attributes as string (e.g., "RODATA|NOPTR")
+//   - size: total size of the symbol in bytes
+func (amd64 *Amd64) GLOBL(symbol string, flags string, size int, comment ...string) {
+	amd64.writeOp(comment, "GLOBL", fmt.Sprintf("%s(SB)", symbol), flags, fmt.Sprintf("$%d", size))
+}
+
+// NO_LOCAL_POINTERS is an assembly directive that indicates the function
+// does not have any local variables that contain pointers.
+// This is a hint to the Go runtime garbage collector.
+//
+// This directive should be placed at the start of a function body,
+// after the TEXT directive.
+func (amd64 *Amd64) NO_LOCAL_POINTERS() {
+	amd64.WriteLn("    NO_LOCAL_POINTERS")
+}
+
+// -----------------------------------------------------------------------------
+// Additional Integer Instructions
+// -----------------------------------------------------------------------------
+
+// NEGQ negates a 64-bit value (two's complement negation).
+// Replaces the value with its two's complement (negative value).
+//
+// Forms:
+//
+//	NEGQ r64
+//	NEGQ m64
+func (amd64 *Amd64) NEGQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "NEGQ", r1)
+}
+
+// NOTQ performs bitwise NOT on a 64-bit value.
+// Inverts every bit of the operand (one's complement).
+//
+// Forms:
+//
+//	NOTQ r64
+//	NOTQ m64
+func (amd64 *Amd64) NOTQ(r1 interface{}, comment ...string) {
+	amd64.writeOp(comment, "NOTQ", r1)
+}
+
+// LEAQ computes the effective address and stores it.
+// Useful for computing offsets and pointer arithmetic without memory access.
+//
+// Forms:
+//
+//	LEAQ m64, r64
+//
+// Example:
+//
+//	LEAQ 8(AX)(BX*8), CX  // CX = AX + BX*8 + 8
+func (amd64 *Amd64) LEAQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "LEAQ", r1, r2)
+}
+
+// ROLQ rotates 64-bit value left by specified count.
+//
+// Forms:
+//
+//	ROLQ imm8, r64
+//	ROLQ CL, r64
+func (amd64 *Amd64) ROLQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "ROLQ", r1, r2)
+}
+
+// RORQ rotates 64-bit value right by specified count.
+//
+// Forms:
+//
+//	RORQ imm8, r64
+//	RORQ CL, r64
+func (amd64 *Amd64) RORQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "RORQ", r1, r2)
+}
+
+// SARQ shifts 64-bit value right arithmetically (preserves sign).
+//
+// Forms:
+//
+//	SARQ imm8, r64
+//	SARQ CL, r64
+func (amd64 *Amd64) SARQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "SARQ", r1, r2)
+}

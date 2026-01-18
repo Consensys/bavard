@@ -62,11 +62,18 @@ const (
 	Z31 = VectorRegister("Z31")
 )
 
+// Mask registers K0-K7 for AVX-512 predicated operations.
+// K0 is special: when used as a write mask, it means "no masking" (all elements active).
+// K1-K7 are general-purpose mask registers for predicated operations.
 const (
+	K0 = MaskRegister("K0") // special: no masking when used as write mask
 	K1 = MaskRegister("K1")
 	K2 = MaskRegister("K2")
 	K3 = MaskRegister("K3")
 	K4 = MaskRegister("K4")
+	K5 = MaskRegister("K5")
+	K6 = MaskRegister("K6")
+	K7 = MaskRegister("K7")
 )
 
 type Label string

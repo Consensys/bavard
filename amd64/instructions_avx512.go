@@ -55,6 +55,17 @@ func (amd64 *Amd64) VPCMPUD(imm8, r1, r2, k interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPCMPUD", imm8, r1, r2, k)
 }
 
+// VPCMPLTUD: Compare Packed Unsigned Doubleword Values for Less Than.
+// This is a shorthand for VPCMPUD with imm8=1 (VPCMPULT).
+// Compares r1 < r2 and stores mask result in k.
+//
+// Forms:
+//
+//	VPCMPLTUD r1 r2 k
+func (amd64 *Amd64) VPCMPLTUD(r1, r2, k interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCMPUD", "$1", r1, r2, k)
+}
+
 // VPMADD52HUQ: Packed Multiply of Unsigned 52-bit Unsigned Integers and Add High 52-bit Products to Quadword Accumulators.
 //
 // Forms:
@@ -695,19 +706,71 @@ func (amd64 *Amd64) VPEXTRQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPEXTRQ", r1, r2, r3)
 }
 
-// VALIGND Align Doubleword Vectors
-func (amd64 *Amd64) VALIGND(r1, r2, r3, k, r4 interface{}, comment ...string) {
-	amd64.writeOp(comment, "VALIGND", r1, r2, r3, k, r4)
+// VALIGND concatenates and shifts doubleword values from two sources.
+// Concatenates src2:src1, shifts right by imm8 doublewords, and stores the low part in dst.
+// This is useful for byte-level data alignment and rotation operations.
+//
+// Forms:
+//
+//	VALIGND imm8, zmm, zmm, zmm           // 4-operand form (no mask)
+//	VALIGND imm8, zmm, zmm, k, zmm        // 5-operand form (with mask)
+//
+// Operation (4-operand form, 512-bit):
+//
+//	temp[1023:0] = src2[511:0]:src1[511:0]
+//	dst[511:0] = temp[imm8*32+511:imm8*32]
+//
+// Example:
+//
+//	VALIGND $0, Z15, Z11, Z11  // effectively copies Z11 elements shifted by Z15 position
+func (amd64 *Amd64) VALIGND(r1, r2, r3, r4 interface{}, r5 ...interface{}) {
+	if len(r5) == 0 {
+		// 4-operand form: imm8, src2, src1, dst
+		amd64.writeOp(nil, "VALIGND", r1, r2, r3, r4)
+	} else {
+		// 5-operand form: imm8, src2, src1, k, dst
+		comment, _ := r5[0].(string)
+		var comments []string
+		if comment != "" {
+			comments = []string{comment}
+		}
+		amd64.writeOp(comments, "VALIGND", r1, r2, r3, r4, r5[0])
+	}
 }
 
-// VALIGND_Z Align Doubleword Vectors (Zeroing Masking).
-func (amd64 *Amd64) VALIGND_Z(r1, r2, r3, k, r4 interface{}, comment ...string) {
-	amd64.writeOp(comment, "VALIGND.Z", r1, r2, r3, k, r4)
+// VALIGNDk concatenates and shifts doubleword values with mask.
+// 5-operand form with explicit mask parameter.
+//
+// Forms:
+//
+//	VALIGND imm8, zmm, zmm, k, zmm
+func (amd64 *Amd64) VALIGNDk(imm8, src2, src1, k, dst interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGND", imm8, src2, src1, k, dst)
 }
 
-// VALIGNQ Align Quadword Vectors
-func (amd64 *Amd64) VALIGNQ(r1, r2, r3, r4 interface{}, comment ...string) {
-	amd64.writeOp(comment, "VALIGNQ", r1, r2, r3, r4)
+// VALIGND_Z concatenates and shifts with zeroing masking.
+// Elements not selected by the mask are zeroed.
+//
+// Forms:
+//
+//	VALIGND.Z imm8, zmm, zmm, k, zmm
+func (amd64 *Amd64) VALIGND_Z(imm8, src2, src1, k, dst interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGND.Z", imm8, src2, src1, k, dst)
+}
+
+// VALIGNQ concatenates and shifts quadword values from two sources.
+// Concatenates src2:src1, shifts right by imm8 quadwords, and stores the low part in dst.
+//
+// Forms:
+//
+//	VALIGNQ imm8, zmm, zmm, zmm
+//
+// Operation (512-bit):
+//
+//	temp[1023:0] = src2[511:0]:src1[511:0]
+//	dst[511:0] = temp[imm8*64+511:imm8*64]
+func (amd64 *Amd64) VALIGNQ(imm8, src2, src1, dst interface{}, comment ...string) {
+	amd64.writeOp(comment, "VALIGNQ", imm8, src2, src1, dst)
 }
 
 // VMOVQ Move Quadword
@@ -767,5 +830,732 @@ func (amd64 *Amd64) VPUNPCKHQDQ(r1, r2, r3 interface{}, comment ...string) {
 
 // KMOVB Move 8-bit Mask
 func (amd64 *Amd64) KMOVB(r1, r2 interface{}, comment ...string) {
-amd64.writeOp(comment, "KMOVB", r1, r2)
+	amd64.writeOp(comment, "KMOVB", r1, r2)
+}
+
+// -----------------------------------------------------------------------------
+// Additional Mask Register Operations
+// -----------------------------------------------------------------------------
+
+// KNOTW performs bitwise NOT on 16-bit mask register.
+//
+// Forms:
+//
+//	KNOTW k, k
+func (amd64 *Amd64) KNOTW(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KNOTW", r1, r2)
+}
+
+// KNOTD performs bitwise NOT on 32-bit mask register.
+//
+// Forms:
+//
+//	KNOTD k, k
+func (amd64 *Amd64) KNOTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KNOTD", r1, r2)
+}
+
+// KNOTQ performs bitwise NOT on 64-bit mask register.
+//
+// Forms:
+//
+//	KNOTQ k, k
+func (amd64 *Amd64) KNOTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KNOTQ", r1, r2)
+}
+
+// KANDW performs bitwise AND on 16-bit mask registers.
+//
+// Forms:
+//
+//	KANDW k, k, k
+func (amd64 *Amd64) KANDW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KANDW", r1, r2, r3)
+}
+
+// KANDD performs bitwise AND on 32-bit mask registers.
+//
+// Forms:
+//
+//	KANDD k, k, k
+func (amd64 *Amd64) KANDD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KANDD", r1, r2, r3)
+}
+
+// KANDQ performs bitwise AND on 64-bit mask registers.
+//
+// Forms:
+//
+//	KANDQ k, k, k
+func (amd64 *Amd64) KANDQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KANDQ", r1, r2, r3)
+}
+
+// KORW performs bitwise OR on 16-bit mask registers.
+//
+// Forms:
+//
+//	KORW k, k, k
+func (amd64 *Amd64) KORW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KORW", r1, r2, r3)
+}
+
+// KORD performs bitwise OR on 32-bit mask registers.
+//
+// Forms:
+//
+//	KORD k, k, k
+func (amd64 *Amd64) KORD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KORD", r1, r2, r3)
+}
+
+// KORQ performs bitwise OR on 64-bit mask registers.
+//
+// Forms:
+//
+//	KORQ k, k, k
+func (amd64 *Amd64) KORQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KORQ", r1, r2, r3)
+}
+
+// KXORW performs bitwise XOR on 16-bit mask registers.
+//
+// Forms:
+//
+//	KXORW k, k, k
+func (amd64 *Amd64) KXORW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KXORW", r1, r2, r3)
+}
+
+// KXORD performs bitwise XOR on 32-bit mask registers.
+//
+// Forms:
+//
+//	KXORD k, k, k
+func (amd64 *Amd64) KXORD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KXORD", r1, r2, r3)
+}
+
+// KXORQ performs bitwise XOR on 64-bit mask registers.
+//
+// Forms:
+//
+//	KXORQ k, k, k
+func (amd64 *Amd64) KXORQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KXORQ", r1, r2, r3)
+}
+
+// KSHIFTRW shifts 16-bit mask right by immediate.
+//
+// Forms:
+//
+//	KSHIFTRW imm8, k, k
+func (amd64 *Amd64) KSHIFTRW(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTRW", imm8, r1, r2)
+}
+
+// KSHIFTRD shifts 32-bit mask right by immediate.
+//
+// Forms:
+//
+//	KSHIFTRD imm8, k, k
+func (amd64 *Amd64) KSHIFTRD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTRD", imm8, r1, r2)
+}
+
+// KSHIFTRQ shifts 64-bit mask right by immediate.
+//
+// Forms:
+//
+//	KSHIFTRQ imm8, k, k
+func (amd64 *Amd64) KSHIFTRQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTRQ", imm8, r1, r2)
+}
+
+// KSHIFTLD shifts 32-bit mask left by immediate.
+//
+// Forms:
+//
+//	KSHIFTLD imm8, k, k
+func (amd64 *Amd64) KSHIFTLD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTLD", imm8, r1, r2)
+}
+
+// KSHIFTLQ shifts 64-bit mask left by immediate.
+//
+// Forms:
+//
+//	KSHIFTLQ imm8, k, k
+func (amd64 *Amd64) KSHIFTLQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KSHIFTLQ", imm8, r1, r2)
+}
+
+// KADDB adds 8-bit masks.
+//
+// Forms:
+//
+//	KADDB k, k, k
+func (amd64 *Amd64) KADDB(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KADDB", r1, r2, r3)
+}
+
+// KADDD adds 32-bit masks.
+//
+// Forms:
+//
+//	KADDD k, k, k
+func (amd64 *Amd64) KADDD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KADDD", r1, r2, r3)
+}
+
+// KADDQ adds 64-bit masks.
+//
+// Forms:
+//
+//	KADDQ k, k, k
+func (amd64 *Amd64) KADDQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KADDQ", r1, r2, r3)
+}
+
+// KTESTB tests 8-bit masks and sets flags.
+//
+// Forms:
+//
+//	KTESTB k, k
+func (amd64 *Amd64) KTESTB(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KTESTB", r1, r2)
+}
+
+// KTESTW tests 16-bit masks and sets flags.
+//
+// Forms:
+//
+//	KTESTW k, k
+func (amd64 *Amd64) KTESTW(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KTESTW", r1, r2)
+}
+
+// KTESTD tests 32-bit masks and sets flags.
+//
+// Forms:
+//
+//	KTESTD k, k
+func (amd64 *Amd64) KTESTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KTESTD", r1, r2)
+}
+
+// KTESTQ tests 64-bit masks and sets flags.
+//
+// Forms:
+//
+//	KTESTQ k, k
+func (amd64 *Amd64) KTESTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KTESTQ", r1, r2)
+}
+
+// KORTESTW: OR 16-bit Masks and Set Flags
+func (amd64 *Amd64) KORTESTW(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KORTESTW", r1, r2)
+}
+
+// KORTESTD: OR 32-bit Masks and Set Flags
+func (amd64 *Amd64) KORTESTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "KORTESTD", r1, r2)
+}
+
+// -----------------------------------------------------------------------------
+// Additional AVX-512 Vector Operations
+// -----------------------------------------------------------------------------
+
+// VPSLLDQ shifts 128-bit lanes left by bytes (byte granularity).
+// Shifts the destination operand left by the number of bytes specified in the count operand.
+//
+// Forms:
+//
+//	VPSLLDQ imm8, zmm, zmm
+func (amd64 *Amd64) VPSLLDQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLDQ", imm8, r1, r2)
+}
+
+// VPSRLDQ shifts 128-bit lanes right by bytes (byte granularity).
+//
+// Forms:
+//
+//	VPSRLDQ imm8, zmm, zmm
+func (amd64 *Amd64) VPSRLDQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRLDQ", imm8, r1, r2)
+}
+
+// VPSLLVD shifts packed doublewords left by variable amounts.
+// Each element is shifted by the corresponding shift count in the shift vector.
+//
+// Forms:
+//
+//	VPSLLVD zmm, zmm, zmm
+func (amd64 *Amd64) VPSLLVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLVD", r1, r2, r3)
+}
+
+// VPSLLVQ shifts packed quadwords left by variable amounts.
+//
+// Forms:
+//
+//	VPSLLVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSLLVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSLLVQ", r1, r2, r3)
+}
+
+// VPSRLVD shifts packed doublewords right logically by variable amounts.
+//
+// Forms:
+//
+//	VPSRLVD zmm, zmm, zmm
+func (amd64 *Amd64) VPSRLVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRLVD", r1, r2, r3)
+}
+
+// VPSRLVQ shifts packed quadwords right logically by variable amounts.
+//
+// Forms:
+//
+//	VPSRLVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSRLVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRLVQ", r1, r2, r3)
+}
+
+// VPSRAVD shifts packed doublewords right arithmetically by variable amounts.
+//
+// Forms:
+//
+//	VPSRAVD zmm, zmm, zmm
+func (amd64 *Amd64) VPSRAVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRAVD", r1, r2, r3)
+}
+
+// VPSRAVQ shifts packed quadwords right arithmetically by variable amounts.
+//
+// Forms:
+//
+//	VPSRAVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSRAVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRAVQ", r1, r2, r3)
+}
+
+// VPROLD rotates packed doublewords left by immediate.
+//
+// Forms:
+//
+//	VPROLD imm8, zmm, zmm
+func (amd64 *Amd64) VPROLD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPROLD", imm8, r1, r2)
+}
+
+// VPROLQ rotates packed quadwords left by immediate.
+//
+// Forms:
+//
+//	VPROLQ imm8, zmm, zmm
+func (amd64 *Amd64) VPROLQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPROLQ", imm8, r1, r2)
+}
+
+// VPRORD rotates packed doublewords right by immediate.
+//
+// Forms:
+//
+//	VPRORD imm8, zmm, zmm
+func (amd64 *Amd64) VPRORD(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPRORD", imm8, r1, r2)
+}
+
+// VPRORQ rotates packed quadwords right by immediate.
+//
+// Forms:
+//
+//	VPRORQ imm8, zmm, zmm
+func (amd64 *Amd64) VPRORQ(imm8, r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPRORQ", imm8, r1, r2)
+}
+
+// VPROLVD rotates packed doublewords left by variable amounts.
+//
+// Forms:
+//
+//	VPROLVD zmm, zmm, zmm
+func (amd64 *Amd64) VPROLVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPROLVD", r1, r2, r3)
+}
+
+// VPROLVQ rotates packed quadwords left by variable amounts.
+//
+// Forms:
+//
+//	VPROLVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPROLVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPROLVQ", r1, r2, r3)
+}
+
+// VPRORVD rotates packed doublewords right by variable amounts.
+//
+// Forms:
+//
+//	VPRORVD zmm, zmm, zmm
+func (amd64 *Amd64) VPRORVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPRORVD", r1, r2, r3)
+}
+
+// VPRORVQ rotates packed quadwords right by variable amounts.
+//
+// Forms:
+//
+//	VPRORVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPRORVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPRORVQ", r1, r2, r3)
+}
+
+// -----------------------------------------------------------------------------
+// Additional AVX-512 Comparison and Selection
+// -----------------------------------------------------------------------------
+
+// VPMAXUD computes maximum of packed unsigned doublewords.
+//
+// Forms:
+//
+//	VPMAXUD zmm, zmm, zmm
+func (amd64 *Amd64) VPMAXUD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMAXUD", r1, r2, r3)
+}
+
+// VPMAXUQ computes maximum of packed unsigned quadwords.
+//
+// Forms:
+//
+//	VPMAXUQ zmm, zmm, zmm
+func (amd64 *Amd64) VPMAXUQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMAXUQ", r1, r2, r3)
+}
+
+// VPMAXSD computes maximum of packed signed doublewords.
+//
+// Forms:
+//
+//	VPMAXSD zmm, zmm, zmm
+func (amd64 *Amd64) VPMAXSD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMAXSD", r1, r2, r3)
+}
+
+// VPMAXSQ computes maximum of packed signed quadwords.
+//
+// Forms:
+//
+//	VPMAXSQ zmm, zmm, zmm
+func (amd64 *Amd64) VPMAXSQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMAXSQ", r1, r2, r3)
+}
+
+// VPMINSD computes minimum of packed signed doublewords.
+//
+// Forms:
+//
+//	VPMINSD zmm, zmm, zmm
+func (amd64 *Amd64) VPMINSD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMINSD", r1, r2, r3)
+}
+
+// VPMINSQ computes minimum of packed signed quadwords.
+//
+// Forms:
+//
+//	VPMINSQ zmm, zmm, zmm
+func (amd64 *Amd64) VPMINSQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPMINSQ", r1, r2, r3)
+}
+
+// VPABSD computes absolute value of packed signed doublewords.
+//
+// Forms:
+//
+//	VPABSD zmm, zmm
+func (amd64 *Amd64) VPABSD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPABSD", r1, r2)
+}
+
+// VPABSQ computes absolute value of packed signed quadwords.
+//
+// Forms:
+//
+//	VPABSQ zmm, zmm
+func (amd64 *Amd64) VPABSQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPABSQ", r1, r2)
+}
+
+// -----------------------------------------------------------------------------
+// Additional Shuffle/Permutation Instructions
+// -----------------------------------------------------------------------------
+
+// VSHUFI32X4 shuffles 128-bit groups of packed doubleword integers.
+//
+// Forms:
+//
+//	VSHUFI32X4 imm8, zmm, zmm, zmm
+func (amd64 *Amd64) VSHUFI32X4(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VSHUFI32X4", imm8, r1, r2, r3)
+}
+
+// VPERMT2D performs full permute of doublewords from two tables.
+//
+// Forms:
+//
+//	VPERMT2D zmm, zmm, zmm
+func (amd64 *Amd64) VPERMT2D(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMT2D", r1, r2, r3)
+}
+
+// VPERMW permutes packed words.
+//
+// Forms:
+//
+//	VPERMW zmm, zmm, zmm
+func (amd64 *Amd64) VPERMW(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPERMW", r1, r2, r3)
+}
+
+// VPCOMPRESSD stores sparse packed doublewords into dense memory/register.
+//
+// Forms:
+//
+//	VPCOMPRESSD zmm, k, zmm
+//	VPCOMPRESSD zmm, k, m512
+func (amd64 *Amd64) VPCOMPRESSD(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCOMPRESSD", r1, k, r2)
+}
+
+// VPCOMPRESSQ stores sparse packed quadwords into dense memory/register.
+//
+// Forms:
+//
+//	VPCOMPRESSQ zmm, k, zmm
+//	VPCOMPRESSQ zmm, k, m512
+func (amd64 *Amd64) VPCOMPRESSQ(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCOMPRESSQ", r1, k, r2)
+}
+
+// VPEXPANDD loads sparse packed doublewords from dense memory/register.
+//
+// Forms:
+//
+//	VPEXPANDD zmm, k, zmm
+//	VPEXPANDD m512, k, zmm
+func (amd64 *Amd64) VPEXPANDD(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPEXPANDD", r1, k, r2)
+}
+
+// VPEXPANDQ loads sparse packed quadwords from dense memory/register.
+//
+// Forms:
+//
+//	VPEXPANDQ zmm, k, zmm
+//	VPEXPANDQ m512, k, zmm
+func (amd64 *Amd64) VPEXPANDQ(r1, k, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPEXPANDQ", r1, k, r2)
+}
+
+// -----------------------------------------------------------------------------
+// Conflict Detection Instructions (AVX-512CD)
+// -----------------------------------------------------------------------------
+
+// VPCONFLICTD detects conflicts within packed doublewords.
+// Returns for each element a bitmask of elements in the same vector
+// that have the same value and come before it.
+//
+// Forms:
+//
+//	VPCONFLICTD zmm, zmm
+func (amd64 *Amd64) VPCONFLICTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCONFLICTD", r1, r2)
+}
+
+// VPCONFLICTQ detects conflicts within packed quadwords.
+//
+// Forms:
+//
+//	VPCONFLICTQ zmm, zmm
+func (amd64 *Amd64) VPCONFLICTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPCONFLICTQ", r1, r2)
+}
+
+// VPLZCNTD counts leading zero bits of packed doublewords.
+//
+// Forms:
+//
+//	VPLZCNTD zmm, zmm
+func (amd64 *Amd64) VPLZCNTD(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPLZCNTD", r1, r2)
+}
+
+// VPLZCNTQ counts leading zero bits of packed quadwords.
+//
+// Forms:
+//
+//	VPLZCNTQ zmm, zmm
+func (amd64 *Amd64) VPLZCNTQ(r1, r2 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPLZCNTQ", r1, r2)
+}
+
+// -----------------------------------------------------------------------------
+// AVX-512 VBMI2 Instructions (Bit Manipulation)
+// -----------------------------------------------------------------------------
+
+// VPSHLDQ concatenates and shifts packed quadwords left.
+// Each quadword result is formed by concatenating the corresponding
+// elements from src1 and src2, then shifting left by the count.
+//
+// Forms:
+//
+//	VPSHLDQ imm8, zmm, zmm, zmm
+//
+// Operation:
+//
+//	for each quadword element i:
+//	    temp = (src1[i] << 64) | src2[i]  // 128-bit concatenation
+//	    dst[i] = (temp << count)[127:64]   // extract upper 64 bits after shift
+func (amd64 *Amd64) VPSHLDQ(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHLDQ", imm8, r1, r2, r3)
+}
+
+// VPSHLDD concatenates and shifts packed doublewords left.
+//
+// Forms:
+//
+//	VPSHLDD imm8, zmm, zmm, zmm
+func (amd64 *Amd64) VPSHLDD(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHLDD", imm8, r1, r2, r3)
+}
+
+// VPSHRDD concatenates and shifts packed doublewords right.
+//
+// Forms:
+//
+//	VPSHRDD imm8, zmm, zmm, zmm
+func (amd64 *Amd64) VPSHRDD(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHRDD", imm8, r1, r2, r3)
+}
+
+// VPSHLDVQ concatenates and shifts quadwords left by variable amounts.
+//
+// Forms:
+//
+//	VPSHLDVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSHLDVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHLDVQ", r1, r2, r3)
+}
+
+// VPSHLDVD concatenates and shifts doublewords left by variable amounts.
+//
+// Forms:
+//
+//	VPSHLDVD zmm, zmm, zmm
+func (amd64 *Amd64) VPSHLDVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHLDVD", r1, r2, r3)
+}
+
+// VPSHRDVQ concatenates and shifts quadwords right by variable amounts.
+//
+// Forms:
+//
+//	VPSHRDVQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSHRDVQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHRDVQ", r1, r2, r3)
+}
+
+// VPSHRDVD concatenates and shifts doublewords right by variable amounts.
+//
+// Forms:
+//
+//	VPSHRDVD zmm, zmm, zmm
+func (amd64 *Amd64) VPSHRDVD(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSHRDVD", r1, r2, r3)
+}
+
+// -----------------------------------------------------------------------------
+// Gather/Scatter Instructions (additional forms)
+// -----------------------------------------------------------------------------
+
+// VPGATHERDQ gathers packed quadwords using signed dword indices.
+//
+// Forms:
+//
+//	VPGATHERDQ baseOffset(base)(index*scale), k, dst
+func (amd64 *Amd64) VPGATHERDQ(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, res VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPGATHERDQ", fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale), mask, res)
+}
+
+// VPGATHERQD gathers packed doublewords using signed qword indices.
+//
+// Forms:
+//
+//	VPGATHERQD baseOffset(base)(index*scale), k, dst
+func (amd64 *Amd64) VPGATHERQD(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, res VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPGATHERQD", fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale), mask, res)
+}
+
+// VPGATHERQQ gathers packed quadwords using signed qword indices.
+//
+// Forms:
+//
+//	VPGATHERQQ baseOffset(base)(index*scale), k, dst
+func (amd64 *Amd64) VPGATHERQQ(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, res VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPGATHERQQ", fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale), mask, res)
+}
+
+// VPSCATTERDQ scatters packed quadwords using signed dword indices.
+//
+// Forms:
+//
+//	VPSCATTERDQ src, k, baseOffset(base)(index*scale)
+func (amd64 *Amd64) VPSCATTERDQ(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, src VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPSCATTERDQ", src, mask, fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale))
+}
+
+// VPSCATTERQD scatters packed doublewords using signed qword indices.
+//
+// Forms:
+//
+//	VPSCATTERQD src, k, baseOffset(base)(index*scale)
+func (amd64 *Amd64) VPSCATTERQD(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, src VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPSCATTERQD", src, mask, fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale))
+}
+
+// VPSCATTERQQ scatters packed quadwords using signed qword indices.
+//
+// Forms:
+//
+//	VPSCATTERQQ src, k, baseOffset(base)(index*scale)
+func (amd64 *Amd64) VPSCATTERQQ(baseAddrOffset int, baseAddr Register, indices VectorRegister, scale int, mask MaskRegister, src VectorRegister, comment ...string) {
+	amd64.writeOp(comment, "VPSCATTERQQ", src, mask, fmt.Sprintf("%d(%s)(%s*%d)", baseAddrOffset, baseAddr, indices, scale))
+}
+
+// -----------------------------------------------------------------------------
+// Reduction and Horizontal Operations
+// -----------------------------------------------------------------------------
+
+// VPTERNLOGQ performs bitwise ternary logical operation on quadwords.
+// The operation is specified by the 8-bit immediate which encodes
+// a 256-entry truth table.
+//
+// Forms:
+//
+//	VPTERNLOGQ imm8, zmm, zmm, zmm
+//
+// Common immediate values:
+//
+//	0x00: result = 0
+//	0xFF: result = all 1s
+//	0xF0: result = A
+//	0xCC: result = B
+//	0xAA: result = C
+//	0x96: result = A XOR B XOR C
+//	0xCA: result = (A AND B) OR (NOT(A) AND C)
+func (amd64 *Amd64) VPTERNLOGQ(imm8, r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPTERNLOGQ", imm8, r1, r2, r3)
 }
