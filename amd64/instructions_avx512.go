@@ -172,6 +172,27 @@ func (amd64 *Amd64) VPSUBQ(r1, r2, r3 interface{}, comment ...string) {
 	amd64.writeOp(comment, "VPSUBQ", r1, r2, r3)
 }
 
+// VPSRAQ: Shift Packed Quadword Integers Right Arithmetic
+// Performs arithmetic (signed) right shift on packed 64-bit integers.
+//
+// Forms:
+//
+//	VPSRAQ imm8, zmm, zmm
+//	VPSRAQ zmm, zmm, zmm
+func (amd64 *Amd64) VPSRAQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPSRAQ", r1, r2, r3)
+}
+
+// VPANDNQ: Bitwise AND NOT of Packed Quadword Integers
+// Performs bitwise AND NOT: dst = NOT(src1) AND src2
+//
+// Forms:
+//
+//	VPANDNQ zmm, zmm, zmm
+func (amd64 *Amd64) VPANDNQ(r1, r2, r3 interface{}, comment ...string) {
+	amd64.writeOp(comment, "VPANDNQ", r1, r2, r3)
+}
+
 // KNOTB: NOT 8-bit Mask Register
 func (amd64 *Amd64) KNOTB(r1, r2 interface{}, comment ...string) {
 	amd64.writeOp(comment, "KNOTB", r1, r2)
