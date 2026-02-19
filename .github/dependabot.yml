@@ -29,3 +29,17 @@ updates:
           - "github/*"
     cooldown:
       default-days: 7
+
+  # 2) Go modules
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:30"
+    open-pull-requests-limit: 3
+    assignees: ["gbotrel", "Tabaie"]
+    labels: ["dependencies", "go"]
+    commit-message:
+      prefix: "deps(go)"
+      include: "scope"
