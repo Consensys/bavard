@@ -37,6 +37,8 @@ updates:
       interval: weekly
       day: monday
       time: "03:30"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 3
     assignees: ["gbotrel", "Tabaie"]
     labels: ["dependencies", "go"]
